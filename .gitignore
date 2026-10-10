@@ -18,6 +18,7 @@ __pycache__/
 /vendor/amd-npu/modelcachekey_*/
 /models/ai/
 /models/film/
+/models/custom/
 *.log
 .DS_Store
 Thumbs.db

@@ -118,10 +118,16 @@ def _process_folder(job, settings, progress, cancel) -> Path:
 
 
 def _process_video(job, settings, progress, cancel) -> Path:
+    from . import custom_models
     from .settings import HELPER_MODEL_ADCSR, canonical_helper_model
 
     if canonical_helper_model(settings.model) == HELPER_MODEL_ADCSR:
         raise ValueError(t("AdcSRは静止画専用です。動画には他のモデルを選んでください"))
+    if custom_models.is_custom_key(canonical_helper_model(settings.model)):
+        entry = custom_models.get(settings.model) if isinstance(settings.model, str) else None
+        if entry is not None and not entry.video:
+            raise custom_models.CustomModelImagesOnly(
+                t("このモデルは動画には使えません: {name}", name=entry.name))
     if settings.backend == UpscaleBackend.SWINIR_CUDA and settings.interpolation_enabled:
         raise ValueError(t("SwinIR CUDA動画ではフレーム補間を併用できません"))
     if not settings.upscale_enabled and not settings.interpolation_enabled:

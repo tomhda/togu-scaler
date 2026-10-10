@@ -120,6 +120,12 @@ if ($WithHelper) {
     }
 }
 
+# 追加モデル用の空フォルダ（利用者が ONNX を置く場所。説明は原本から写す）
+$customOut = Join-Path $app "models\custom"
+New-Item -ItemType Directory -Path $customOut -Force | Out-Null
+Copy-Item -LiteralPath (Join-Path $repo "scripts\portable-notices\custom-models-README.txt") `
+    -Destination (Join-Path $customOut "README.txt") -Force
+
 # 本体と同梱物のライセンス
 $notices = Join-Path $repo "scripts\portable-notices"
 Copy-Item -LiteralPath (Join-Path $repo "LICENSE") -Destination (Join-Path $app "LICENSE.txt") -Force

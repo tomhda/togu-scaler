@@ -36,7 +36,7 @@ from PySide6.QtWidgets import (
 )
 
 from app import APP_NAME
-from app.core import addon_kits, binaries, catalog, helper_backend, npu_prepare
+from app.core import addon_kits, binaries, catalog, custom_models, helper_backend, npu_prepare
 from app.core.jobs import Job, JobKind, JobStatus
 from app.core.settings import (
     DEFAULT_MODEL,
@@ -82,6 +82,8 @@ _HELPER_BACKENDS = {
 }
 # モデル・実行先の表は app/core/catalog.py が唯一の出どころ（CLI と共有）。
 # GUI はここでは別名で参照するだけ。
+# 追加モデルの区切り（モデルコンボの内蔵と追加の間に挟む。選べない）。
+_SEPARATOR_VALUE = "__separator__"
 _MODEL_LABELS = catalog.MODEL_LABELS
 _HELPER_MODEL_OPTIONS = catalog.HELPER_MODEL_OPTIONS
 _HELPER_MODEL_VALUES = catalog.HELPER_MODEL_VALUES
@@ -150,6 +152,10 @@ class MainWindow(QWidget):
         self._current_job_id: int | None = None
         self._npu_converting = False
 
+        # 追加モデル（起動時に 1 回読む。置いたあとは再起動が必要）
+        self._custom_models, self._custom_failures = custom_models.scan()
+        self._custom_by_key = {model.key: model for model in self._custom_models}
+
         # 種類ごとの一括設定（モデル・倍率。動画は補間モデルも持つ）。
         # 個別設定は _overrides[job_id] にだけ置き、ここには一括だけを持つ。
         self._image_model: str | None = DEFAULT_HELPER_MODEL
@@ -175,6 +181,7 @@ class MainWindow(QWidget):
         self.drawer = SettingsDrawer(
             model_label=lambda key: t(_MODEL_LABELS.get(key, key))
         )
+        self.drawer.set_custom_models(self._custom_models, self._custom_failures)
         self.drawer.npu_converting_changed.connect(
             self._on_npu_converting_changed)
         self._drawer_open = False
@@ -1001,9 +1008,14 @@ class MainWindow(QWidget):
             return
         if backend in _HELPER_BACKENDS:
             # 「なし」は無効にするだけで、コンボ自体は戻せるよう有効のままにする。
+            # 追加モデルも 4x 固定（内蔵と同じ）。
+            upscale_fixed = (
+                model in _HELPER_MODEL_VALUES
+                or custom_models.is_custom_key(model)
+            )
             for scale, button in self._scale_btns.items():
                 button.setEnabled(
-                    model in _HELPER_MODEL_VALUES
+                    upscale_fixed
                     and scale == 4
                     and not self._running
                 )
@@ -1109,6 +1121,17 @@ class MainWindow(QWidget):
             return addon_kits.adcsr_gpu_installed()
         return True
 
+    def _custom_display(self, key: str) -> str:
+        """追加モデルの一覧での名前（{name}（追加））。"""
+        raw = key[len("custom:"):] if custom_models.is_custom_key(key) else str(key)
+        model = self._custom_by_key.get(key)
+        return t("{name}（追加）", name=model.name if model is not None else raw)
+
+    @staticmethod
+    def _custom_hint() -> str:
+        """追加モデルの説明行（速度・画質の印は出さない）。"""
+        return t("追加したモデル・GPU で実行")
+
     def _base_options(
         self, backend: UpscaleBackend, is_video: bool,
         models: list[str] | None = None,
@@ -1118,7 +1141,17 @@ class MainWindow(QWidget):
             if backend == UpscaleBackend.SWINIR_CUDA:
                 return list(_SWINIR_CUDA_MODEL_OPTIONS)
             base = list(_HELPER_MODEL_OPTIONS)
-            return self._without_adcsr(base) if is_video else base
+            base = self._without_adcsr(base) if is_video else base
+            # 追加モデルは内蔵の後ろに区切り線を入れて並べる。
+            # video: false は動画用の一覧に出さない。
+            customs = [
+                (model.name, model.key) for model in self._custom_models
+                if model.video or not is_video
+            ]
+            if customs:
+                base.append(("", _SEPARATOR_VALUE))
+                base.extend(customs)
+            return base
         if models is None:
             try:
                 models = binaries.available_models()
@@ -1142,6 +1175,7 @@ class MainWindow(QWidget):
                 else DEFAULT_HELPER_MODEL
             )
             allowed = {v for _label, v in self._base_options(backend, is_video)}
+            allowed.discard(_SEPARATOR_VALUE)
             if not self._adcsr_available(backend):
                 allowed.discard(HELPER_MODEL_ADCSR)
             if combo.count() == 0:
@@ -1203,6 +1237,7 @@ class MainWindow(QWidget):
             allowed = {
                 v for _label, v in self._base_options(backend, is_video, models)
             }
+            allowed.discard(_SEPARATOR_VALUE)
             if not self._adcsr_available(backend):
                 allowed.discard(HELPER_MODEL_ADCSR)
             if effective not in allowed:
@@ -1241,7 +1276,11 @@ class MainWindow(QWidget):
         try:
             combo.clear()
             for label, value in options:
-                if value == HELPER_MODEL_ADCSR and unavailable_adcsr:
+                if value == _SEPARATOR_VALUE:
+                    combo.insertSeparator(combo.count())
+                elif custom_models.is_custom_key(value):
+                    combo.addItem(self._custom_display(value), value)
+                elif value == HELPER_MODEL_ADCSR and unavailable_adcsr:
                     combo.addItem(
                         t("{name}（未導入）", name=t("AdcSR")),
                         value,
@@ -1294,6 +1333,8 @@ class MainWindow(QWidget):
     def _compose_hint_line(backend: UpscaleBackend, data: str) -> str:
         """モデルの説明を 1 行で返す（速さ・実行先の注意は付けない）。"""
         del backend  # 説明は実行先によらない
+        if custom_models.is_custom_key(data):
+            return t("追加したモデル・GPU で実行")
         desc = _MODEL_HINT.get(data, "")
         return t(desc) if desc else ""
 
@@ -1314,7 +1355,14 @@ class MainWindow(QWidget):
         item_model = combo.model()
         for i in range(combo.count()):
             data = combo.itemData(i)
-            if data in (None, "__missing__"):
+            if data in (None, "__missing__", _SEPARATOR_VALUE):
+                continue
+            if custom_models.is_custom_key(data):
+                # 追加モデルは速度・画質の印も未変換の印も付けない。
+                combo.setItemText(i, self._custom_display(data))
+                item = item_model.item(i)
+                if item is not None:
+                    item.setToolTip(self._custom_hint())
                 continue
             if data == HELPER_MODEL_ADCSR and not self._adcsr_available(backend):
                 # 未導入の表示は載せ替えのまま残す（印を付けない）。
@@ -1440,6 +1488,11 @@ class MainWindow(QWidget):
                 allowed.discard(HELPER_MODEL_ADCSR)
             if not self._adcsr_available(backend):
                 allowed.discard(HELPER_MODEL_ADCSR)
+            # 追加モデルは画像側に全部、動画側は video: true だけ。
+            for key, model in self._custom_by_key.items():
+                if tab == _VIDEO_TAB and not model.video:
+                    continue
+                allowed.add(key)
             return allowed
         if models is None:
             try:
@@ -1612,6 +1665,7 @@ class MainWindow(QWidget):
         if show:
             self.drawer.refresh_npu_rows()
             self.drawer.refresh_kit_rows()
+            self.drawer.refresh_custom_models()
         self._sync_workspace()
         self.settings_btn.setProperty("active", show)
         self.settings_btn.style().unpolish(self.settings_btn)
@@ -1735,6 +1789,9 @@ class MainWindow(QWidget):
             if job_settings.backend != UpscaleBackend.NPU_NATIVE:
                 continue
             if job_settings.model is None:
+                continue
+            if custom_models.is_custom_key(job_settings.model):
+                # 追加モデルは GPU で実行するため変換は要らない。
                 continue
             if (
                 job.width and job.height
@@ -1864,6 +1921,10 @@ class MainWindow(QWidget):
         backend = t(backend_label) if backend_label else backend_value
         if settings.model is None:
             upscale = t("なし")
+        elif custom_models.is_custom_key(settings.model):
+            upscale = "{}・{}x".format(
+                self._custom_display(settings.model), settings.scale
+            )
         else:
             model_label = _MODEL_LABELS.get(settings.model)
             upscale = "{}・{}x".format(
@@ -1888,7 +1949,10 @@ class MainWindow(QWidget):
         model, scale, interpolation, individual = self._resolve_effective(job)
         suffix = t("（個別）") if individual else ""
         if model is not None:
-            label = t(_MODEL_LABELS.get(model, model))
+            if custom_models.is_custom_key(model):
+                label = self._custom_display(model)
+            else:
+                label = t(_MODEL_LABELS.get(model, model))
             if interpolation is not None:
                 return t(
                     "{model}・{scale}x・補間あり{suffix}",
@@ -1910,9 +1974,13 @@ class MainWindow(QWidget):
         """完了した行に出す表示（使った設定で決まる）。"""
         settings = job.settings
         if settings is not None and settings.model is not None:
+            if custom_models.is_custom_key(settings.model):
+                done_label = self._custom_display(settings.model)
+            else:
+                done_label = t(_MODEL_LABELS.get(settings.model, settings.model))
             return t(
                 "完了・{model}",
-                model=t(_MODEL_LABELS.get(settings.model, settings.model)),
+                model=done_label,
             )
         if settings is not None and settings.interpolation_model is not None:
             return t("完了・補間のみ")

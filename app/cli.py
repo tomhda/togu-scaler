@@ -42,6 +42,9 @@ CODE_FPS_TOO_LOW = "fps_too_low"
 CODE_FACTOR_FPS_CONFLICT = "factor_fps_conflict"
 CODE_NPU_NOT_CONVERTED = "npu_not_converted"
 CODE_NPU_UNAVAILABLE = "npu_unavailable"
+CODE_CUSTOM_MODEL_LOAD_FAILED = "custom_model_load_failed"
+CODE_CUSTOM_MODEL_NEEDS_GPU = "custom_model_needs_gpu"
+CODE_CUSTOM_MODEL_IMAGES_ONLY = "custom_model_images_only"
 CODE_OUTPUT_EXISTS = "output_exists"
 CODE_INVALID_ARGUMENT = "invalid_argument"
 CODE_PROCESS_FAILED = "process_failed"
@@ -419,7 +422,7 @@ def _resolve_backend(name: str) -> str:
 
 def _upscale_keys(backend: str) -> list[str]:
     """Model keys in display order (same source as the GUI lists)."""
-    from app.core import binaries
+    from app.core import binaries, custom_models
     from app.core.settings import (
         HELPER_MODEL_ADCSR,
         HELPER_MODEL_ANIME,
@@ -429,13 +432,20 @@ def _upscale_keys(backend: str) -> list[str]:
     )
 
     if backend in ("gpu", "npu"):
-        return [
+        keys = [
             HELPER_MODEL_ANIME,
             HELPER_MODEL_SPAN,
             HELPER_MODEL_GENERAL,
             HELPER_MODEL_SWINIR,
             HELPER_MODEL_ADCSR,
         ]
+        # 追加モデルは内蔵の後ろに並べる（Vulkan には出さない）。
+        try:
+            customs, _failures = custom_models.scan()
+        except OSError:
+            customs = []
+        keys.extend(model.key for model in customs)
+        return keys
     return list(binaries.available_models())
 
 
@@ -460,6 +470,26 @@ def _check_model_key(backend: str, key: str | None) -> str | None:
             t("Real-ESRGAN（AMD縮小版）は v0.13.0 で外しました。"),
             t("--model general-x4v3（Real-ESRGAN General v3）を使ってください。"),
         )
+    if isinstance(key, str) and key.startswith("custom:"):
+        from app.core import custom_models as custom_module
+
+        try:
+            customs, _failures = custom_module.scan()
+        except OSError:
+            customs = []
+        if key in {model.key for model in customs}:
+            if backend == "vulkan":
+                raise UsageError(
+                    CODE_CUSTOM_MODEL_NEEDS_GPU,
+                    t("追加したモデルは GPU（DirectML）でだけ実行できます。"),
+                    "Run it on a PC with a DirectX 12 GPU (DirectML).",
+                )
+            return key
+        raise UsageError(
+            CODE_MODEL_UNKNOWN,
+            f"Unknown model: {key}.",
+            f"Check available models with: {PROG} models --json",
+        )
     valid = set(_upscale_keys(backend))
     concrete = _normalize_model_key(backend, key)
     if key in valid:
@@ -479,6 +509,13 @@ def _check_model_installed(backend: str, model: str | None) -> None:
         return
     if _model_available(backend, model):
         return
+    if isinstance(model, str) and model.startswith("custom:"):
+        # 一覧に出たあとで消された追加モデルは「知らないモデル」扱い。
+        raise UsageError(
+            CODE_MODEL_UNKNOWN,
+            f"Unknown model: {model}.",
+            f"Check available models with: {PROG} models --json",
+        )
     raise UsageError(
         CODE_KIT_MISSING,
         f"Model {model} is not installed.",
@@ -535,6 +572,13 @@ def _check_interpolation_kit(key: str) -> None:
 
 
 def _model_available(backend: str, key: str) -> bool:
+    if isinstance(key, str) and key.startswith("custom:"):
+        from app.core import custom_models as custom_module
+
+        try:
+            return any(model.key == key for model in custom_module.scan()[0])
+        except OSError:
+            return False
     from app.core import helper_backend
     from app.core.settings import HELPER_MODEL_FILES, UpscaleBackend
 
@@ -553,13 +597,33 @@ def _model_available(backend: str, key: str) -> bool:
 
 def _upscale_entries(backend: str) -> list[dict]:
     """Shared body of models --json upscale list (GUI tables are the source)."""
-    from app.core import binaries
+    from app.core import binaries, custom_models
     from app.core.catalog import MODEL_HINT, MODEL_LABELS
     from app.core import helper_backend
+    from app.core.custom_models import CustomModel
     from app.i18n import t as translate
 
+    customs: dict[str, CustomModel] = {}
+    if backend in ("gpu", "npu"):
+        try:
+            customs = {model.key: model for model in custom_models.scan()[0]}
+        except OSError:
+            customs = {}
     entries: list[dict] = []
     for key in _upscale_keys(backend):
+        if key in customs:
+            model = customs[key]
+            entries.append({
+                "key": key,
+                "name": translate("{name}（追加）", name=model.name),
+                "image": True,
+                "video": bool(model.video),
+                "scales": [4],
+                "available": True,
+                "note": translate("追加したモデル・GPU で実行"),
+                "custom": True,
+            })
+            continue
         name = translate(MODEL_LABELS.get(key, key))
         hint = MODEL_HINT.get(key, "")
         note = translate(hint) if hint else ""
@@ -830,6 +894,9 @@ def _check_npu(backend: str, model: str | None, kinds: list[str],
 
     if backend != "npu" or model is None:
         return
+    if isinstance(model, str) and model.startswith("custom:"):
+        # 追加モデルは GPU で実行するため NPU の変換は要らない。
+        return
     npu_ok, _reason = _npu_state()
     if not npu_ok:
         raise UsageError(
@@ -1010,10 +1077,40 @@ def _result_settings(backend: str, model: str | None, scale: int,
     }
 
 
+def _process_error_code(exc: Exception) -> tuple[str, str]:
+    """Runtime failure code and fix (custom models have their own codes)."""
+    from app.core import custom_models as custom_module
+
+    if isinstance(exc, custom_module.CustomModelNeedsGpu):
+        return (
+            CODE_CUSTOM_MODEL_NEEDS_GPU,
+            "Run it on a PC with a DirectX 12 GPU (DirectML).",
+        )
+    if isinstance(exc, custom_module.CustomModelLoadFailed):
+        return (
+            CODE_CUSTOM_MODEL_LOAD_FAILED,
+            "Check that it is an ONNX model with a fixed-size RGB input "
+            "and a 4x output.",
+        )
+    if isinstance(exc, custom_module.CustomModelImagesOnly):
+        return (
+            CODE_CUSTOM_MODEL_IMAGES_ONLY,
+            "Choose a model whose \"video\" is true in: "
+            f"{PROG} models --json.",
+        )
+    return (
+        CODE_PROCESS_FAILED,
+        "Run with --dry-run to check the plan, then retry. "
+        "If it keeps failing, try another backend with --backend.",
+    )
+
+
 def _validate_run(args: argparse.Namespace):
     """Validate everything before processing (exit 2, nothing processed)."""
     from app.core import binaries
+    from app.core import custom_models as custom_module
     from app.core.settings import HELPER_MODEL_ADCSR
+    from app.i18n import t
 
     backend = _resolve_backend(args.backend)
     options = _run_options(args)
@@ -1032,6 +1129,15 @@ def _validate_run(args: argparse.Namespace):
             "Choose a model whose \"video\" is true in: "
             f"{PROG} models --json (for example animevideov3 or 4xNomosUni).",
         )
+    if isinstance(model, str) and model.startswith("custom:") and "video" in kinds:
+        entry = custom_module.get(model)
+        if entry is not None and not entry.video:
+            raise UsageError(
+                CODE_CUSTOM_MODEL_IMAGES_ONLY,
+                t("このモデルは動画には使えません: {name}", name=entry.name),
+                "Choose a model whose \"video\" is true in: "
+                f"{PROG} models --json.",
+            )
     _check_model_installed(backend, model)
     if interpolation is not None:
         _check_interpolation_kit(interpolation)
@@ -1167,10 +1273,9 @@ def _execute_run(args: argparse.Namespace, planned: list[dict]) -> int:
             break
         except Exception as exc:  # One failure never stops the rest.
             failed = True
+            code, fix = _process_error_code(exc)
             results.append(_failed_result(
-                path, kind, item, CODE_PROCESS_FAILED, str(exc) or repr(exc),
-                "Run with --dry-run to check the plan, then retry. "
-                "If it keeps failing, try another backend with --backend."))
+                path, kind, item, code, str(exc) or repr(exc), fix))
             if not args.json:
                 print(f"failed: {path.name}: {exc}", file=sys.stderr)
             continue
@@ -1385,10 +1490,8 @@ def _cmd_quick_check(args: argparse.Namespace) -> int:
             "Example: --rect 0,0,640,360.",
         ) from None
     except Exception as exc:
-        _emit_error(CODE_PROCESS_FAILED, str(exc) or repr(exc),
-                    "Run with --dry-run on run to check the plan, then retry. "
-                    "If it keeps failing, try another backend with --backend.",
-                    bool(args.json))
+        code, fix = _process_error_code(exc)
+        _emit_error(code, str(exc) or repr(exc), fix, bool(args.json))
         return EXIT_FAILED
     seconds = round(time.monotonic() - start, 2)
     width, height = None, None

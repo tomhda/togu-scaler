@@ -392,6 +392,35 @@ EN: dict[str, str | None] = {
     '導入済み': 'Installed',
     # 追加キットの行のボタン
     'ダウンロード': 'Download',
+    # --- 追加モデル
+    # 詳細設定内の見出し
+    '追加モデル': 'Your own models',
+    # 追加モデルの説明文
+    'ONNX 形式の 4 倍の超解像モデルを下のフォルダに置くと、次に起動したときからモデルの一覧に加わります。GPU で実行します。モデルの利用条件は、ご自身で確認してください。': "Put 4× super-resolution models in ONNX format into the folder below, and they are added to the model lists from the next start. They run on the GPU. Check each model's terms of use yourself.",
+    # 追加モデルのフォルダを開くボタン
+    'フォルダを開く': 'Open folder',
+    # 追加モデルの読み込んだ数。{count}=個数
+    '{count} 個のモデルを読み込みました': '{count} models loaded',
+    # 追加モデルが無いとき
+    'まだありません': 'None yet',
+    # 追加モデルの読み込めなかった行。{file}=ファイル名、{reason}=理由
+    '読み込めませんでした: {file}（{reason}）': 'Could not load: {file} ({reason})',
+    # 読み込めなかった理由: JSON が壊れている
+    '設定ファイルを読めません': 'the settings file cannot be read',
+    # 読み込めなかった理由: overlap が範囲外
+    'overlap は 0〜64 の整数にしてください': 'overlap must be an integer from 0 to 64',
+    # 追加モデルの一覧での名前。{name}=素の名前
+    '{name}（追加）': '{name} (added)',
+    # 追加モデルの説明行
+    '追加したモデル・GPU で実行': 'Added model · Runs on the GPU',
+    # NPU を選んでいたときの進捗
+    '追加したモデルは GPU で実行します': 'Added models run on the GPU',
+    # 追加モデルを開けなかった・4 倍でなかったとき。{name}=素の名前
+    'このモデルを読み込めませんでした: {name}。入力が固定サイズ・RGB で、出力が 4 倍の ONNX かどうか確認してください。': 'Could not load this model: {name}. Check that it is an ONNX model with a fixed-size RGB input and a 4× output.',
+    # GPU が使えないとき
+    '追加したモデルは GPU（DirectML）でだけ実行できます。': 'Added models can run only on the GPU (DirectML).',
+    # 動画に使えない追加モデルを動画に指定したとき。{name}=素の名前
+    'このモデルは動画には使えません: {name}': 'This model cannot be used for videos: {name}',
     # --- NPU の準備
     # 詳細設定内の見出し／未変換案内の文中の名称（2箇所で同じ文言）
     'NPU の準備': 'NPU setup',

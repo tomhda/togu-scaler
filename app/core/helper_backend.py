@@ -20,7 +20,7 @@ import numpy as np
 from PIL import Image, ImageOps
 
 from ..i18n import t
-from . import binaries, jobs, media
+from . import binaries, custom_models, jobs, media
 from .jobs import ProgressCb
 from .serve_client import HelperOutputInvalid, ServeClient, ServeClientError
 from .settings import (
@@ -128,8 +128,32 @@ def overlap_for_model(model: str | ModelFamily | None) -> int:
     """serve の --overlap（片側マージン、入力 px）をモデル別に返す。
 
     AdcSR だけ 32（128 タイル → コア 64）。それ以外は既定 16。
+    追加モデルは持ち込んだ設定の値を返す。
     """
-    return HELPER_MODEL_OVERLAP.get(canonical_helper_model(model), HELPER_DEFAULT_OVERLAP)
+    key = canonical_helper_model(model)
+    if custom_models.is_custom_key(key):
+        entry = custom_models.get(key) if isinstance(key, str) else None
+        if entry is not None:
+            return entry.overlap
+        return HELPER_DEFAULT_OVERLAP
+    return HELPER_MODEL_OVERLAP.get(key, HELPER_DEFAULT_OVERLAP)
+
+
+def _custom_load_failed_message(name: str) -> str:
+    """追加モデルを開けなかったときの文言（4 倍でないときも同じ）。"""
+    return t(
+        "このモデルを読み込めませんでした: {name}。入力が固定サイズ・RGB で、"
+        "出力が 4 倍の ONNX かどうか確認してください。",
+        name=name,
+    )
+
+
+def _custom_display_name(model_key: str) -> str:
+    """追加モデルの素の名前（設定の name、無ければファイル名）。"""
+    entry = custom_models.get(model_key)
+    if entry is not None:
+        return entry.name
+    return str(model_key)[len(custom_models.CUSTOM_PREFIX):]
 
 
 def seam_template_path(
@@ -183,6 +207,14 @@ def effective_backend(backend: UpscaleBackend, width: int, height: int) -> Upsca
 
 def _resolve_model(backend: UpscaleBackend, model: str | ModelFamily, tile: int) -> Path:
     model_key = canonical_helper_model(model)
+    if custom_models.is_custom_key(model_key):
+        # 追加モデルは持ち込んだファイルをそのまま使う（実行先・タイルは見ない）。
+        assert isinstance(model_key, str)
+        entry = custom_models.get(model_key)
+        if entry is None:
+            raise custom_models.CustomModelLoadFailed(
+                _custom_load_failed_message(_custom_display_name(model_key)))
+        return entry.path
     try:
         filename = HELPER_MODEL_FILES[backend][model_key][tile]
     except KeyError as exc:
@@ -509,6 +541,19 @@ def _session_spec(
     requested = settings.backend
     backend = effective_backend(requested, width, height)
     model_key = _model_key(settings)
+    if custom_models.is_custom_key(model_key):
+        # 追加モデルは GPU（DirectML）だけで実行する。タイルの大きさは
+        # モデルから決まる（serve の READY が scale と tile を返す）ため、
+        # アプリ側では選ばない（0 を返し、READY の値をそのまま使う）。
+        assert isinstance(model_key, str)
+        if requested == UpscaleBackend.VULKAN:
+            raise custom_models.CustomModelNeedsGpu(
+                t("追加したモデルは GPU（DirectML）でだけ実行できます。"))
+        entry = custom_models.get(model_key)
+        if entry is None:
+            raise custom_models.CustomModelLoadFailed(
+                _custom_load_failed_message(_custom_display_name(model_key)))
+        return UpscaleBackend.WINML_GPU, 0, entry.path
     if backend == UpscaleBackend.SWINIR_CUDA:
         if model_key != HELPER_MODEL_SWINIR:
             raise HelperBackendUnavailable(
@@ -544,14 +589,17 @@ def open_session(
     本処理は既定の 0 のまま。
     """
     progress = progress or _noop
+    model_key = _model_key(settings)
+    is_custom = custom_models.is_custom_key(model_key)
     try:
         backend, tile, model_path = _session_spec(settings, width, height)
-        model_key = _model_key(settings)
         overlap = overlap_for_model(model_key)
         if backend == UpscaleBackend.SWINIR_CUDA:
             progress(0.0, t("SwinIR-MをCUDAへ読み込み中…"))
         elif settings.backend == UpscaleBackend.NPU_NATIVE and backend == UpscaleBackend.WINML_GPU:
-            if model_key == HELPER_MODEL_ADCSR:
+            if is_custom:
+                progress(0.0, t("追加したモデルは GPU で実行します"))
+            elif model_key == HELPER_MODEL_ADCSR:
                 progress(0.0, t("AdcSRはNPU非対応のためGPUで実行…"))
             else:
                 progress(0.0, t("短辺480px未満のためGPUへ自動切替…"))
@@ -585,7 +633,16 @@ def open_session(
             workdir = script.parent
             timeout = _swinir_startup_timeout()
         elif backend == UpscaleBackend.WINML_GPU:
-            helper = _winml_helper()
+            if is_custom:
+                try:
+                    helper = _winml_helper()
+                except HelperBackendUnavailable as exc:
+                    # 追加モデルは Vulkan へ切り替えない。
+                    raise custom_models.CustomModelNeedsGpu(
+                        t("追加したモデルは GPU（DirectML）でだけ実行できます。")
+                    ) from exc
+            else:
+                helper = _winml_helper()
             command = [
                 str(helper), "serve", "--model", str(model_path),
                 "--ep-name", "DmlExecutionProvider",
@@ -724,12 +781,24 @@ def open_session(
                 progress(0.0, t("AI準備中…"))
 
         client.connect(timeout=timeout, progress=_waiting, cancel=cancel)
+        if is_custom and client.scale != 4:
+            # 4 倍でないモデルは開けなかったものとして扱う。
+            assert isinstance(model_key, str)
+            client.close(force=True)
+            raise custom_models.CustomModelLoadFailed(
+                _custom_load_failed_message(_custom_display_name(model_key)))
         return HelperSession(client, backend, model_path, cache_hit)
     except jobs.Cancelled:
         raise
     except HelperBackendUnavailable:
         raise
     except (ServeClientError, OSError, ValueError) as exc:
+        if is_custom:
+            # ヘルパーがモデルを開けなかった。Vulkan へは切り替えない。
+            assert isinstance(model_key, str)
+            raise custom_models.CustomModelLoadFailed(
+                _custom_load_failed_message(_custom_display_name(model_key))
+            ) from exc
         raise HelperBackendUnavailable(str(exc) or exc.__class__.__name__) from exc
 
 

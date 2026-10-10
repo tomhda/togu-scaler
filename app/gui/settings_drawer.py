@@ -20,7 +20,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from app.core import addon_kits, catalog, helper_backend, npu_prepare
+from app.core import addon_kits, catalog, custom_models, helper_backend, npu_prepare
 from app.core import user_settings
 from app.core.jobs import Cancelled
 from app.core.settings import (
@@ -484,6 +484,56 @@ class SettingsDrawer(QFrame):
         toggle_wrap.setLayout(toggles)
         root.addWidget(toggle_wrap)
 
+        # --- 追加モデル（追加キットの上に置く） ---
+        self.custom_section = QWidget()
+        self.custom_section.setObjectName("toggleWrap")
+        custom_section = QVBoxLayout(self.custom_section)
+        custom_section.setContentsMargins(0, 8, 0, 0)
+        custom_section.setSpacing(8)
+        custom_line = QFrame()
+        custom_line.setObjectName("separator")
+        custom_line.setFixedHeight(1)
+        custom_section.addWidget(custom_line)
+        custom_heading = QLabel(t("追加モデル"))
+        custom_heading.setObjectName("sectionTitle")
+        custom_section.addWidget(custom_heading)
+        custom_desc = QLabel(
+            t(
+                "ONNX 形式の 4 倍の超解像モデルを下のフォルダに置くと、"
+                "次に起動したときからモデルの一覧に加わります。"
+                "GPU で実行します。モデルの利用条件は、ご自身で確認してください。"
+            )
+        )
+        custom_desc.setObjectName("hint")
+        custom_desc.setWordWrap(True)
+        custom_section.addWidget(custom_desc)
+        custom_folder_row = QHBoxLayout()
+        custom_folder_row.setContentsMargins(0, 0, 0, 0)
+        custom_folder_row.setSpacing(8)
+        self.custom_folder_label = QLabel("")
+        self.custom_folder_label.setObjectName("hint")
+        self.custom_folder_label.setWordWrap(True)
+        custom_folder_row.addWidget(self.custom_folder_label, 1)
+        self.custom_open_button = QPushButton(t("フォルダを開く"))
+        self.custom_open_button.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.custom_open_button.clicked.connect(self._on_custom_open_folder)
+        custom_folder_row.addWidget(self.custom_open_button)
+        custom_section.addLayout(custom_folder_row)
+        self.custom_count_label = QLabel("")
+        self.custom_count_label.setObjectName("hint")
+        self.custom_count_label.setWordWrap(True)
+        custom_section.addWidget(self.custom_count_label)
+        self.custom_failures_box = QWidget()
+        self.custom_failures_box.setObjectName("fieldLabelWrap")
+        self.custom_failures_layout = QVBoxLayout(self.custom_failures_box)
+        self.custom_failures_layout.setContentsMargins(0, 0, 0, 0)
+        self.custom_failures_layout.setSpacing(4)
+        custom_section.addWidget(self.custom_failures_box)
+        root.addWidget(self.custom_section)
+        self._custom_models: list = []
+        self._custom_failures: list = []
+        self.refresh_custom_models()
+
         # --- 追加キット（NPU の準備の上に置く） ---
         self.kit_section = QWidget()
         self.kit_section.setObjectName("toggleWrap")
@@ -686,6 +736,53 @@ class SettingsDrawer(QFrame):
             )
         if film and self.target_fps.currentData() in _FPS_FIXED_KEYS:
             self._set_combo_value(self.target_fps, "x2")
+
+    # ------------------------------------------------------- 追加モデル
+    def set_custom_models(self, models: list, failures: list) -> None:
+        """追加モデルの読み込み結果を欄に反映する（再起動が必要な旨は説明文で案内）。"""
+        self._custom_models = list(models)
+        self._custom_failures = list(failures)
+        self._render_custom_models()
+
+    def refresh_custom_models(self) -> None:
+        """詳細設定を開いたときにフォルダを読み直す。"""
+        try:
+            models, failures = custom_models.scan()
+        except OSError:
+            return
+        self.set_custom_models(models, failures)
+
+    def _render_custom_models(self) -> None:
+        """「追加モデル」欄の場所・数・読み込めなかった行を載せ替える。"""
+        self.custom_folder_label.setText(str(custom_models.custom_models_dir()))
+        if self._custom_models:
+            self.custom_count_label.setText(
+                t("{count} 個のモデルを読み込みました", count=len(self._custom_models))
+            )
+        else:
+            self.custom_count_label.setText(t("まだありません"))
+        while self.custom_failures_layout.count():
+            item = self.custom_failures_layout.takeAt(0)
+            widget = item.widget()
+            if widget is not None:
+                widget.deleteLater()
+        for failure in self._custom_failures:
+            label = QLabel(
+                t(
+                    "読み込めませんでした: {file}（{reason}）",
+                    file=failure.file,
+                    reason=t(failure.reason),
+                )
+            )
+            label.setObjectName("hint")
+            label.setWordWrap(True)
+            self.custom_failures_layout.addWidget(label)
+
+    @staticmethod
+    def _on_custom_open_folder() -> None:
+        """追加モデルのフォルダを OS の既定の方法で開く。"""
+        QDesktopServices.openUrl(
+            QUrl.fromLocalFile(str(custom_models.custom_models_dir())))
 
     # ------------------------------------------------------- 追加キット
     def _rebuild_kit_rows(self) -> None:

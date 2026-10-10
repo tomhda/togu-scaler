@@ -339,6 +339,7 @@ _EXPECTED_NONLITERAL = Counter(
         ("app/gui/queue_view.py", "_KIND_LABEL.get(self.job.kind, '')"): 1,
         ("app/gui/queue_view.py", "self.job.message"): 1,
         ("app/gui/queue_view.py", "_STATUS_TEXT.get(self.job.status, '')"): 1,
+        ("app/gui/settings_drawer.py", "failure.reason"): 1,
         ("app/gui/settings_drawer.py", "label"): 2,
         ("app/gui/settings_drawer.py", "text"): 1,
         ("app/gui/settings_drawer.py", "help_text"): 2,

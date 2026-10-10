@@ -41,6 +41,10 @@ togu-scaler-cli models --json
   Upscaling entries also have `image` and `video` (what the model can process).
 - Use `key` as the value of `--model` / `--interpolation`. Only entries with `"available": true` work;
   the others need an add-on kit (see "Add-on kits" below).
+- A user-supplied ONNX model placed in `models\custom\` (next to `togu-scaler-cli.exe`;
+  `models/custom/` from source, or the `TOGU_CUSTOM_MODELS_DIR` folder) appears at the end of
+  `upscale[]` with `"custom": true`, from the next start. Its key is `custom:<file name without
+  extension>`. Custom models run on the GPU (DirectML) only, and are hidden with `--backend vulkan`.
 - Starting points: `animevideov3` for anime and CG, `4xNomosUni` or `general-x4v3` for live action. All three are fast.
   `SwinIR` and `AdcSR` take about a minute or more per image, so use them for single stills.
   `AdcSR` can't process videos (`"video": false`).
@@ -141,7 +145,10 @@ Errors look like this, on stdout with `--json` (otherwise as `error:` and `fix:`
 `unsupported_input`, `model_unknown`, `model_removed` (`AMD-RRDB` was removed in v0.13.0;
 use `general-x4v3`), `model_not_for_video` (AdcSR is for still images),
 `kit_missing` (an add-on is not installed), `npu_not_converted`, `fps_not_multiple`
-(FILM takes `--factor`, not `--fps`), `fps_too_low`, `output_exists`, `process_failed`.
+(FILM takes `--factor`, not `--fps`), `fps_too_low`, `output_exists`, `process_failed`,
+`custom_model_load_failed` (a custom model could not be opened, or is not a fixed-size
+RGB 4x model), `custom_model_needs_gpu` (a custom model needs a DirectML GPU),
+`custom_model_images_only` (a custom model with `"video": false` was chosen for a video).
 
 ## Side effects
 

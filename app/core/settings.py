@@ -105,6 +105,9 @@ def canonical_helper_model(model: str | ModelFamily | None) -> str | None:
     if model is None:
         return None
     value = model.value if isinstance(model, ModelFamily) else str(model)
+    if value.startswith("custom:"):
+        # 追加モデルは別名を持たない（ファイル名がそのままキー）。
+        return value
     return HELPER_MODEL_ALIASES.get(value, value)
 
 

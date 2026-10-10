@@ -28,7 +28,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from app.core import helper_backend, npu_prepare
+from app.core import custom_models, helper_backend, npu_prepare
 from app.core import trial as trial_core
 from app.core.jobs import Job, JobKind
 from app.core.settings import UpscaleBackend, UpscaleSettings
@@ -1279,6 +1279,8 @@ class TrialPanel(QWidget):
         if self._source_image is None or self._source_png is None:
             return
         if (settings.backend == UpscaleBackend.NPU_NATIVE
+                # 追加モデルは GPU で実行するため変換は要らない。
+                and not custom_models.is_custom_key(settings.model)
                 and not npu_prepare.is_converted(str(settings.model))):
             # 短辺不足で GPU に自動切替する入力は止めない。
             width, height = self._source_image.width(), self._source_image.height()
