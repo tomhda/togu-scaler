@@ -3,7 +3,7 @@
 [日本語](README.md) [![agent-friendly](docs/images/agent-friendly.svg)](AGENTS.md)
 
 **[⬇ Download TOGU SCALER v0.13.0](https://github.com/tomhda/togu-scaler/releases/download/v0.13.0/togu-scaler-portable-win64.zip)**
-(zip for Windows x64, 382 MB). See [Install](#install) for the steps.
+(zip for Windows x64, 384 MB). See [Install](#install) for the steps.
 Up to v0.11.0, the app was named ultraeasy-upscaler.
 
 TOGU SCALER is a Windows app that upscales images and videos, and interpolates video frames, with a few clicks.
@@ -153,7 +153,7 @@ Models that are not included in the app are separate downloads.
 |---|---|---|
 | FILM (Style) | The frame interpolation model FILM (Style) | [`togu-scaler-film-kit.zip`](https://github.com/tomhda/togu-scaler/releases/download/v0.13.0/togu-scaler-film-kit.zip) (178 MB) |
 | AdcSR (for GPU) | The upscaling model AdcSR on the GPU | [`togu-scaler-adcsr-kit.zip`](https://github.com/tomhda/togu-scaler/releases/download/v0.13.0/togu-scaler-adcsr-kit.zip) (1.7 GB) |
-| NPU kit | Processing on the NPU (below) | [`togu-scaler-npu-kit.zip`](https://github.com/tomhda/togu-scaler/releases/download/v0.13.0/togu-scaler-npu-kit.zip) (56 MB) |
+| NPU kit | Processing on the NPU (below) | [`togu-scaler-npu-kit.zip`](https://github.com/tomhda/togu-scaler/releases/download/v0.13.0/togu-scaler-npu-kit.zip) (58 MB) |
 | AdcSR (for NPU) | The upscaling model AdcSR on the NPU | [`togu-scaler-npu-kit-adcsr.zip`](https://github.com/tomhda/togu-scaler/releases/download/v0.13.0/togu-scaler-npu-kit-adcsr.zip) (1.7 GB) |
 
 1. Close TOGU SCALER and extract the contents of the zip into the folder that contains `togu-scaler.exe`, overwriting files.
@@ -182,7 +182,7 @@ You can use your own 4× super-resolution models (ONNX format) in the same way a
 On AMD Ryzen AI PCs, downloading an extra kit lets the app process on the NPU. The NPU becomes selectable when both of the following are in place.
 
 - AMD's [Ryzen AI Software 1.8.0](https://ryzenai.docs.amd.com/en/latest/inst.html) (get it from AMD and install it; NPU driver 32.0.203.329 or later)
-- [`togu-scaler-npu-kit.zip`](https://github.com/tomhda/togu-scaler/releases/download/v0.13.0/togu-scaler-npu-kit.zip) (56 MB)
+- [`togu-scaler-npu-kit.zip`](https://github.com/tomhda/togu-scaler/releases/download/v0.13.0/togu-scaler-npu-kit.zip) (58 MB)
 
 To use AdcSR on the NPU, you also need the NPU-only model [`togu-scaler-npu-kit-adcsr.zip`](https://github.com/tomhda/togu-scaler/releases/download/v0.13.0/togu-scaler-npu-kit-adcsr.zip) (1.7 GB).
 

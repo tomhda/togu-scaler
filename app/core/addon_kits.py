@@ -75,7 +75,7 @@ def addon_kits() -> list[AddonKit]:
         AddonKit(
             key="npu",
             name_key=N_("NPU キット"),
-            size="56 MB",
+            size="58 MB",
             filename="togu-scaler-npu-kit.zip",
             installed=npu_kit_installed(),
         ),

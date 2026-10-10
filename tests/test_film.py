@@ -451,7 +451,7 @@ def _canned_kits(installed: dict[str, bool]):
     return [
         AddonKit("film", "FILM (Style)", "178 MB",
                  "togu-scaler-film-kit.zip", installed["film"]),
-        AddonKit("npu", "NPU キット", "56 MB",
+        AddonKit("npu", "NPU キット", "58 MB",
                  "togu-scaler-npu-kit.zip", installed["npu"]),
         AddonKit("adcsr_gpu", "AdcSR（GPU 用）", "1.7 GB",
                  "togu-scaler-adcsr-kit.zip", installed["adcsr_gpu"]),
