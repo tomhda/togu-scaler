@@ -2,7 +2,7 @@
 
 [日本語](README.md) [![agent-friendly](docs/images/agent-friendly.svg)](AGENTS.md)
 
-**[⬇ Download TOGU SCALER v0.12.2](https://github.com/tomhda/togu-scaler/releases/download/v0.12.2/togu-scaler-portable-win64.zip)**
+**[⬇ Download TOGU SCALER v0.13.0](https://github.com/tomhda/togu-scaler/releases/download/v0.13.0/togu-scaler-portable-win64.zip)**
 (zip for Windows x64, 382 MB). See [Install](#install) for the steps.
 Up to v0.11.0, the app was named ultraeasy-upscaler.
 
@@ -17,7 +17,8 @@ You can compare the results of several models side by side, and for a video you 
 ## What it does
 
 - Enlarges images and videos 4× with super-resolution models. Videos are saved as H.264.
-- Super-resolution models: Anime Video v3, 4xNomosUni SPAN, Real-ESRGAN (AMD compact)\*, SwinIR-M, AdcSR\*
+- Super-resolution models: Anime Video v3, 4xNomosUni SPAN, Real-ESRGAN General v3, SwinIR-M, AdcSR\*
+- You can also add your own 4× super-resolution models (ONNX) to the lists ([Your own models](#your-own-models)).
 
 - Processing a video takes time, so before the full run you can pick one frame (or part of it), process just that, and compare it with the original. Results from different models can be compared with each other too.
 - Processes a batch with the model you choose, and lets you use a different model for individual files.
@@ -28,7 +29,6 @@ You can compare the results of several models side by side, and for a video you 
 
 - Runs from the command line without opening the window, and returns its results as JSON ([Command line](#command-line)).
 
-\* Real-ESRGAN (AMD compact) has a research-only license.
 \* AdcSR is for still images only and is a separate download.
 \* FILM (Style) is a separate download.
 
@@ -51,7 +51,7 @@ and Superman (1941), which is in the public domain.
 
 Tested on Windows 11 (x64) with a DirectX 12 GPU.
 
-1. Download [`togu-scaler-portable-win64.zip`](https://github.com/tomhda/togu-scaler/releases/download/v0.12.2/togu-scaler-portable-win64.zip).
+1. Download [`togu-scaler-portable-win64.zip`](https://github.com/tomhda/togu-scaler/releases/download/v0.13.0/togu-scaler-portable-win64.zip).
 2. Extract the zip anywhere you like. It is a portable app and needs no installation.
 3. Run `togu-scaler.exe`. The file is not code-signed, so Windows SmartScreen may show "Windows protected your PC". Select **More info**, then **Run anyway**.
 
@@ -112,7 +112,7 @@ Times are for enlarging one 854×480 image 4× on a Radeon 860M (the integrated 
 |---|---|---|---|
 | Anime Video v3 | Anime, line art, CG | 0.46 s | Tidies details and smooths the picture. Good with old, degraded material. Looks heavily processed on live action |
 | 4xNomosUni SPAN | Live action | 0.51 s | Keeps the original texture and grain. Its correction is mild, the original look remains, and it suits clean material |
-| Real-ESRGAN (AMD compact) | Live action | 2.78 s | Brings out edges and individual hairs. Looks more processed. Research-only license |
+| Real-ESRGAN General v3 | Live action | 0.61 s | Brings out edges a little and looks crisp. Skin texture remains. Fast, so it also suits video |
 | SwinIR-M | Live-action stills | 59 s | A transformer model. Takes its time and restores fine detail |
 | AdcSR | Live-action stills | 108 s | A generative model that adds texture. It is very heavy and adds a lot, so it is for still images only. Not included in the app; it needs an [add-on kit](#add-on-kits) |
 
@@ -124,7 +124,7 @@ Times are for enlarging one 854×480 image 4× on a Radeon 860M (the integrated 
 
 Results enlarged 4×.
 Top row, left to right: the original (enlarged 4× with Lanczos, no AI), Anime Video v3, 4xNomosUni SPAN.
-Bottom row, left to right: Real-ESRGAN (AMD compact), SwinIR-M, AdcSR.
+Bottom row, left to right: Real-ESRGAN General v3, SwinIR-M, AdcSR.
 All of them were run on the GPU with DirectML.
 
 Toon CG: Big Buck Bunny (480p)
@@ -141,7 +141,7 @@ Live action: Tears of Steel (720p)
 
 - Anime Video v3: tidies details and smooths the picture. The strongest on old, degraded material.
 - 4xNomosUni SPAN: keeps the original texture and grain. Its processing is mild, and the cleaner the source, the better it suits.
-- Real-ESRGAN (AMD compact): brings out edges and each hair sharply. Looks more processed.
+- Real-ESRGAN General v3: brings out edges a little and looks crisp. Looks more processed than 4xNomosUni SPAN, and skin becomes a little smoother.
 - SwinIR-M: tightens fine detail without breaking edges. Takes longer than 4xNomosUni SPAN.
 - AdcSR: the AI draws in skin wrinkles, hair, and the weave of cloth. The most detailed on live action. On cel animation it also draws the roughness of the source as texture, so it is not suited to it.
 
@@ -151,28 +151,40 @@ Models that are not included in the app are separate downloads.
 
 | Kit | Adds | File |
 |---|---|---|
-| FILM (Style) | The frame interpolation model FILM (Style) | [`togu-scaler-film-kit.zip`](https://github.com/tomhda/togu-scaler/releases/download/v0.12.2/togu-scaler-film-kit.zip) (178 MB) |
-| AdcSR (for GPU) | The upscaling model AdcSR on the GPU | [`togu-scaler-adcsr-kit.zip`](https://github.com/tomhda/togu-scaler/releases/download/v0.12.2/togu-scaler-adcsr-kit.zip) (1.7 GB) |
-| NPU kit | Processing on the NPU (below) | [`togu-scaler-npu-kit.zip`](https://github.com/tomhda/togu-scaler/releases/download/v0.12.2/togu-scaler-npu-kit.zip) (56 MB) |
-| AdcSR (for NPU) | The upscaling model AdcSR on the NPU | [`togu-scaler-npu-kit-adcsr.zip`](https://github.com/tomhda/togu-scaler/releases/download/v0.12.2/togu-scaler-npu-kit-adcsr.zip) (1.7 GB) |
+| FILM (Style) | The frame interpolation model FILM (Style) | [`togu-scaler-film-kit.zip`](https://github.com/tomhda/togu-scaler/releases/download/v0.13.0/togu-scaler-film-kit.zip) (178 MB) |
+| AdcSR (for GPU) | The upscaling model AdcSR on the GPU | [`togu-scaler-adcsr-kit.zip`](https://github.com/tomhda/togu-scaler/releases/download/v0.13.0/togu-scaler-adcsr-kit.zip) (1.7 GB) |
+| NPU kit | Processing on the NPU (below) | [`togu-scaler-npu-kit.zip`](https://github.com/tomhda/togu-scaler/releases/download/v0.13.0/togu-scaler-npu-kit.zip) (56 MB) |
+| AdcSR (for NPU) | The upscaling model AdcSR on the NPU | [`togu-scaler-npu-kit-adcsr.zip`](https://github.com/tomhda/togu-scaler/releases/download/v0.13.0/togu-scaler-npu-kit-adcsr.zip) (1.7 GB) |
 
 1. Close TOGU SCALER and extract the contents of the zip into the folder that contains `togu-scaler.exe`, overwriting files.
 2. Start the app. The model is now in the list.
 
 **Add-on kits** in the settings shows which kits are installed and downloads each zip. See the NOTICE file in each zip for the terms of use.
 
-▼ **Add-on kits** and **NPU setup** in the settings
+▼ **Your own models**, **Add-on kits** and **NPU setup** in the settings
 
-![Add-on kits and NPU setup](docs/images/npu-prepare-en.jpg)
+![Your own models, Add-on kits and NPU setup](docs/images/npu-prepare-en.jpg)
+
+## Your own models
+
+You can use your own 4× super-resolution models (ONNX format) in the same way as the built-in ones.
+
+1. Close TOGU SCALER and put the model (`.onnx`) into the `models\custom` folder inside the folder that contains `togu-scaler.exe`.
+2. Start the app. The model is at the end of the model lists, marked **(added)**.
+
+- **Your own models** in the settings shows the folder and how many models were loaded.
+- Added models run on the GPU (DirectML). They run on the GPU even when **Run on** is set to NPU, and cannot be chosen when it is set to Vulkan.
+- The requirements for a model (fixed-size input, 4×, and so on), the settings file, and how to make an ONNX file from a PyTorch model are in [docs/custom-models.md](docs/custom-models.md).
+- Check the terms of use of each model yourself.
 
 ## NPU kit
 
 On AMD Ryzen AI PCs, downloading an extra kit lets the app process on the NPU. The NPU becomes selectable when both of the following are in place.
 
 - AMD's [Ryzen AI Software 1.8.0](https://ryzenai.docs.amd.com/en/latest/inst.html) (get it from AMD and install it; NPU driver 32.0.203.329 or later)
-- [`togu-scaler-npu-kit.zip`](https://github.com/tomhda/togu-scaler/releases/download/v0.12.2/togu-scaler-npu-kit.zip) (56 MB)
+- [`togu-scaler-npu-kit.zip`](https://github.com/tomhda/togu-scaler/releases/download/v0.13.0/togu-scaler-npu-kit.zip) (56 MB)
 
-To use AdcSR on the NPU, you also need the NPU-only model [`togu-scaler-npu-kit-adcsr.zip`](https://github.com/tomhda/togu-scaler/releases/download/v0.12.2/togu-scaler-npu-kit-adcsr.zip) (1.7 GB).
+To use AdcSR on the NPU, you also need the NPU-only model [`togu-scaler-npu-kit-adcsr.zip`](https://github.com/tomhda/togu-scaler/releases/download/v0.13.0/togu-scaler-npu-kit-adcsr.zip) (1.7 GB).
 
 Steps:
 
@@ -186,7 +198,7 @@ Time and memory needed to convert a model for the NPU (measured on a Ryzen AI 7 
 |---|---|---|
 | Anime Video v3 | about 15 min | about 1.9 GB |
 | 4xNomosUni SPAN | about 14 min | about 1.2 GB |
-| Real-ESRGAN (AMD compact) | about 25 min | about 1.3 GB |
+| Real-ESRGAN General v3 | about 20 min | not measured |
 | SwinIR-M | about 65 min | about 25 GB |
 | AdcSR | about 2 hours | not measured |
 
@@ -222,6 +234,7 @@ The list of commands, how to check a result, and the side effects are in [AGENTS
 - Video output is at most 3840×2160. Larger results are reduced to that size.
 - HDR video (PQ / HLG) can't be processed.
 - AdcSR is for still images only.
+- Your own models must be 4× models, and run on the GPU only.
 - FILM (Style) interpolates only to 2, 4, or 8 times the source frame rate. Together with upscaling, it always interpolates first and upscales after.
 - Settings such as the model return to their defaults when the app closes.
 - The NPU can be used only on AMD Ryzen AI PCs that have Ryzen AI Software installed and the NPU kit added.
@@ -240,7 +253,7 @@ Running from source, the requirements of each engine, measurements, environment 
 |---|---|---|
 | Anime Video v3 (realesr-animevideov3) | xinntao ([Real-ESRGAN](https://github.com/xinntao/Real-ESRGAN)) | BSD 3-Clause |
 | 4xNomosUni SPAN (4xNomosUni_span_multijpg) | Philip Hofmann (Phips) | CC BY 4.0 (attribution required) |
-| Real-ESRGAN (AMD compact) | AMD | Research-only RAIL-MS (research use only) |
+| Real-ESRGAN General v3 (realesr-general-x4v3) | xinntao ([Real-ESRGAN](https://github.com/xinntao/Real-ESRGAN)) | BSD 3-Clause |
 | SwinIR-M (003_realSR_BSRGAN_DFO_s64w8_SwinIR-M_x4_GAN) | Jingyun Liang | Apache 2.0 |
 | AdcSR | Guaishou74851 (CVPR 2025) | Apache 2.0. The terms of use of Stable Diffusion 2.1-base, which it is built on (CreativeML Open RAIL++-M), also apply, so check them yourself before use |
 | RIFE v4.6 | hzwer ([Practical-RIFE](https://github.com/hzwer/Practical-RIFE)) | MIT |

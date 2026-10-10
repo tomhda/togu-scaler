@@ -2,7 +2,7 @@
 
 [English](README.en.md) [![agent-friendly](docs/images/agent-friendly.svg)](AGENTS.md)
 
-**[⬇ TOGU SCALER v0.12.2 をダウンロード](https://github.com/tomhda/togu-scaler/releases/download/v0.12.2/togu-scaler-portable-win64.zip)**
+**[⬇ TOGU SCALER v0.13.0 をダウンロード](https://github.com/tomhda/togu-scaler/releases/download/v0.13.0/togu-scaler-portable-win64.zip)**
 （Windows x64 用の zip、382 MB）。手順は「[導入](#導入)」を参照。
 v0.11.0 までの名前は ultraeasy-upscaler です。
 
@@ -17,7 +17,8 @@ Real-ESRGAN など、最大5つの超解像モデルと、RIFE v4.6・FILM (Styl
 ## できること
 
 - 超解像モデルを用いて画像、動画を キレイに拡大。動画はH.264 で保存。
-- 超解像モデル：Anime Video v3、 4xNomosUni SPAN、Real-ESRGAN（AMD縮小版）※、SwinIR-M、AdcSR※
+- 超解像モデル：Anime Video v3、 4xNomosUni SPAN、Real-ESRGAN General v3、SwinIR-M、AdcSR※
+- 自分で用意した 4 倍の超解像モデル（ONNX）を一覧に加えて使うことも可能（[追加モデル](#追加モデル)）。
 
 - 動画処理は時間がかかるため、本処理の前に 1 コマ（またはその一部）を選んで処理し、処理前と見比べることができます。複数のモデル同士も比較可能です。
 - モデルを指定して一括処理の他、特定のファイルだけ別のモデルで処理することも可能。
@@ -28,7 +29,6 @@ Real-ESRGAN など、最大5つの超解像モデルと、RIFE v4.6・FILM (Styl
 
 - 画面を開かずにコマンドから実行でき、結果を JSON で受け取れます（[コマンドライン](#コマンドライン)）。
 
-※Real-ESRGAN（AMD縮小版）は研究用途限定のライセンス
 ※AdcSRは静止画専用・別途ダウンロード必須
 ※FILM (Style) は別途ダウンロード必須
 
@@ -51,7 +51,7 @@ Superman (1941)（パブリックドメイン）
 
 Windows 11（x64）と、DirectX 12 対応の GPU で動作確認済み
 
-1. [`togu-scaler-portable-win64.zip`](https://github.com/tomhda/togu-scaler/releases/download/v0.12.2/togu-scaler-portable-win64.zip) をダウンロード
+1. [`togu-scaler-portable-win64.zip`](https://github.com/tomhda/togu-scaler/releases/download/v0.13.0/togu-scaler-portable-win64.zip) をダウンロード
 2. zip を好きな場所に展開（ポータブル版のためインストール不要）。
 3. `togu-scaler.exe` を起動。署名のない実行ファイルなので、Windows の SmartScreen が「Windows によって PC が保護されました」と表示することがある。その場合は「詳細情報」→「実行」。
 
@@ -112,7 +112,7 @@ zip には動作に必要な全ファイルが入っているため、フォル�
 |---|---|---|---|
 | Anime Video v3 | アニメ・線画・CG | 0.46 秒 | 細部を整理してなめらかにする。劣化した古い素材に強い。実写には加工感が強く出る |
 | 4xNomosUni SPAN | 実写 | 0.51 秒 | 元の質感や粒状感を残す実写向きの素材。補正は強くないが元の雰囲気が残り、きれいな素材に向く |
-| Real-ESRGAN（AMD縮小版） | 実写 | 2.78 秒 | 輪郭や毛を 1 本ずつ立てる。加工感は強め。研究用途限定のライセンス |
+| Real-ESRGAN General v3 | 実写 | 0.61 秒 | 輪郭をやや立てて、くっきり見せる。肌の質感は残る。速いので動画にも向く |
 | SwinIR-M | 実写の静止画 | 59 秒 | Transformerモデル。時間をかけて細部まで復元。 |
 | AdcSR | 実写の静止画 | 108 秒 | AI生成型で、質感を作り足すモデル。とても重く書き足しも強いため静止画専用。本体には含まれず[追加キット](#追加キット)が必要 |
 
@@ -124,7 +124,7 @@ zip には動作に必要な全ファイルが入っているため、フォル�
 
 4倍への拡大結果
 上段は左から オリジナル（Lanczos で 4 倍・AI なし）、Anime Video v3、4xNomosUni SPAN。
-下段は左から Real-ESRGAN（AMD縮小版）、SwinIR-M、AdcSR。
+下段は左から Real-ESRGAN General v3、SwinIR-M、AdcSR。
 すべて GPU / DirectML で実行。
 
 トゥーン CG — Big Buck Bunny (480p):
@@ -141,7 +141,7 @@ zip には動作に必要な全ファイルが入っているため、フォル�
 
 - Anime Video v3: 細部を整理してなめらかに。劣化した古い素材に最も強い
 - 4xNomosUni SPAN: 元の質感や粒状感を残す。加工は控えめで、きれいな素材ほど向く
-- Real-ESRGAN（AMD縮小版）: 輪郭や毛の 1 本 1 本をくっきり立てる。加工感は強め
+- Real-ESRGAN General v3: 輪郭をやや立ててくっきり見せる。4xNomosUni SPAN より加工感があり、肌は少しなめらかになる
 - SwinIR-M: 輪郭を崩さずに細部を締める。4xNomosUni SPAN より時間がかかる
 - AdcSR: 肌のしわ、毛、布の織り目などを AI が描き足す。実写では最も精細。セル画では元のざらつきまで質感として描くので向かない
 
@@ -151,28 +151,40 @@ zip には動作に必要な全ファイルが入っているため、フォル�
 
 | キット | 使えるようになるもの | ファイル |
 |---|---|---|
-| FILM (Style) | フレーム補間モデル FILM (Style) | [`togu-scaler-film-kit.zip`](https://github.com/tomhda/togu-scaler/releases/download/v0.12.2/togu-scaler-film-kit.zip)（178 MB） |
-| AdcSR（GPU 用） | 拡大モデル AdcSR（GPU） | [`togu-scaler-adcsr-kit.zip`](https://github.com/tomhda/togu-scaler/releases/download/v0.12.2/togu-scaler-adcsr-kit.zip)（1.7 GB） |
-| NPU キット | NPU での処理（下記） | [`togu-scaler-npu-kit.zip`](https://github.com/tomhda/togu-scaler/releases/download/v0.12.2/togu-scaler-npu-kit.zip)（56 MB） |
-| AdcSR（NPU 用） | 拡大モデル AdcSR（NPU） | [`togu-scaler-npu-kit-adcsr.zip`](https://github.com/tomhda/togu-scaler/releases/download/v0.12.2/togu-scaler-npu-kit-adcsr.zip)（1.7 GB） |
+| FILM (Style) | フレーム補間モデル FILM (Style) | [`togu-scaler-film-kit.zip`](https://github.com/tomhda/togu-scaler/releases/download/v0.13.0/togu-scaler-film-kit.zip)（178 MB） |
+| AdcSR（GPU 用） | 拡大モデル AdcSR（GPU） | [`togu-scaler-adcsr-kit.zip`](https://github.com/tomhda/togu-scaler/releases/download/v0.13.0/togu-scaler-adcsr-kit.zip)（1.7 GB） |
+| NPU キット | NPU での処理（下記） | [`togu-scaler-npu-kit.zip`](https://github.com/tomhda/togu-scaler/releases/download/v0.13.0/togu-scaler-npu-kit.zip)（56 MB） |
+| AdcSR（NPU 用） | 拡大モデル AdcSR（NPU） | [`togu-scaler-npu-kit-adcsr.zip`](https://github.com/tomhda/togu-scaler/releases/download/v0.13.0/togu-scaler-npu-kit-adcsr.zip)（1.7 GB） |
 
 1. TOGU SCALER を終了し、zip の中身を `togu-scaler.exe` があるフォルダに上書きで展開する。
 2. 起動すると、モデルの一覧で選べるようになる。
 
 詳細設定の「追加キット」で、導入済みかどうかの確認と、各 zip のダウンロードができます。使用条件は各 zip 内の NOTICE を参照。
 
-▼ 詳細設定の「追加キット」と「NPU の準備」
+▼ 詳細設定の「追加モデル」「追加キット」「NPU の準備」
 
-![追加キットと NPU の準備](docs/images/npu-prepare.jpg)
+![追加モデル、追加キット、NPU の準備](docs/images/npu-prepare.jpg)
+
+## 追加モデル
+
+自分で用意した 4 倍の超解像モデル（ONNX 形式）を、内蔵のモデルと同じように使えます。
+
+1. TOGU SCALER を終了し、モデル（`.onnx`）を `togu-scaler.exe` があるフォルダの `models\custom` に置く。
+2. 起動すると、モデルの一覧の末尾に「（追加）」付きで並ぶ。
+
+- 詳細設定の「追加モデル」に、フォルダの場所と、読み込んだモデルの数が出ます。
+- 追加したモデルは GPU（DirectML）で実行します。AI実行先が NPU でも GPU で実行し、Vulkan のときは選べません。
+- モデルの条件（固定サイズの入力、4 倍など）、設定ファイル、PyTorch のモデルからの作り方は [docs/custom-models.md](docs/custom-models.md) を参照。
+- モデルの利用条件は、利用者自身で確認してください。
 
 ## NPU 拡張キット
 
 AMD Ryzen AI 搭載機では、追加キットをダウンロードすることで NPU 処理が可能。次の 2 つが導入済みの場合、選択可能になる。
 
 - AMD の [Ryzen AI Software 1.8.0](https://ryzenai.docs.amd.com/en/latest/inst.html)（AMD のサイトから入手して導入。NPU ドライバ 32.0.203.329 以降）
-- [`togu-scaler-npu-kit.zip`](https://github.com/tomhda/togu-scaler/releases/download/v0.12.2/togu-scaler-npu-kit.zip)（56 MB）。
+- [`togu-scaler-npu-kit.zip`](https://github.com/tomhda/togu-scaler/releases/download/v0.13.0/togu-scaler-npu-kit.zip)（56 MB）。
 
-AdcSR を NPU で使う場合は、追加でNPU専用モデル [`togu-scaler-npu-kit-adcsr.zip`](https://github.com/tomhda/togu-scaler/releases/download/v0.12.2/togu-scaler-npu-kit-adcsr.zip)（1.7 GB）も必要。
+AdcSR を NPU で使う場合は、追加でNPU専用モデル [`togu-scaler-npu-kit-adcsr.zip`](https://github.com/tomhda/togu-scaler/releases/download/v0.13.0/togu-scaler-npu-kit-adcsr.zip)（1.7 GB）も必要。
 
 手順:
 
@@ -186,7 +198,7 @@ AdcSR を NPU で使う場合は、追加でNPU専用モデル [`togu-scaler-npu
 |---|---|---|
 | Anime Video v3 | 約 15 分 | 約 1.9GB |
 | 4xNomosUni SPAN | 約 14 分 | 約 1.2GB |
-| Real-ESRGAN（AMD縮小版） | 約 25 分 | 約 1.3GB |
+| Real-ESRGAN General v3 | 約 20 分 | 未測定 |
 | SwinIR-M | 約 65 分 | 約 25GB |
 | AdcSR | 約 2 時間 | 未測定 |
 
@@ -222,6 +234,7 @@ togu-scaler-cli quick-check clip.mp4 --time 5 --model animevideov3 --out check.p
 - 動画の出力は最大 3840×2160 で、これを超える場合は同サイズまで縮小されます。
 - HDR 動画（PQ / HLG）は処理不可。
 - AdcSR は静止画専用です。
+- 追加モデルは 4 倍のモデルのみで、GPU でのみ実行します。
 - FILM (Style) の補間は、元の 2 倍・4 倍・8 倍のフレームレートのみです。拡大と一緒に使うときは、常に補間してから拡大します。
 - モデルなどの設定はアプリを終了時にデフォルトに戻ります。
 - NPU は、Ryzen AI Software を入れた AMD Ryzen AI 搭載機にて、追加キットを入れた場合のみ使用可能です。
@@ -240,7 +253,7 @@ togu-scaler-cli quick-check clip.mp4 --time 5 --model animevideov3 --out check.p
 |---|---|---|
 | Anime Video v3（realesr-animevideov3） | xinntao（[Real-ESRGAN](https://github.com/xinntao/Real-ESRGAN)） | BSD 3-Clause |
 | 4xNomosUni SPAN（4xNomosUni_span_multijpg） | Philip Hofmann（Phips） | CC BY 4.0（作者の表示が必要） |
-| Real-ESRGAN（AMD縮小版） | AMD | Research-only RAIL-MS（研究用途のみ） |
+| Real-ESRGAN General v3（realesr-general-x4v3） | xinntao（[Real-ESRGAN](https://github.com/xinntao/Real-ESRGAN)） | BSD 3-Clause |
 | SwinIR-M（003_realSR_BSRGAN_DFO_s64w8_SwinIR-M_x4_GAN） | Jingyun Liang | Apache 2.0 |
 | AdcSR | Guaishou74851（CVPR 2025） | Apache 2.0。基になった Stable Diffusion 2.1-base の使用条件（CreativeML Open RAIL++-M）も適用されるため、使う前に利用者自身で確認すること |
 | RIFE v4.6 | hzwer（[Practical-RIFE](https://github.com/hzwer/Practical-RIFE)） | MIT |

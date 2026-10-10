@@ -66,7 +66,7 @@ DirectML / NPU では具体的なモデル名で選ぶ。GPU と NPU で対応�
 |---|---|---|---|---|---|---|
 | `animevideov3` | Anime Video v3 | realesr-animevideov3（NPU は PReLU 分解版 `dp`） | SRVGGNetCompact | アニメ・線画・CG | GPU / NPU | 256〜512 自動 / 512 |
 | `4xNomosUni` | 4xNomosUni SPAN | 4xNomosUni_span_multijpg | SPAN（48nf） | 実写の毛・肌・背景の質感を残す | GPU / NPU | 256〜512 自動 / 512 |
-| `AMD-RRDB` | Real-ESRGAN（AMD縮小版） | AMD 縮小 RRDB 版 | RRDB | 輪郭を強く見せたい実写 | GPU / NPU | 256 / 256 |
+| `general-x4v3` | Real-ESRGAN General v3 | realesr-general-x4v3（NPU は PReLU 分解版 `dp`） | SRVGGNetCompact（64ch・32 層） | 輪郭をやや立てたい実写・動画 | GPU / NPU | 256〜512 自動 / 512 |
 | `SwinIR` | SwinIR-M | 003_realSR_BSRGAN_DFO_s64w8_SwinIR-M_x4_GAN | SwinIR（window attention） | 静止画の最高画質（低速） | GPU / NPU / CUDA | 256 / 256 |
 | `AdcSR` | AdcSR | AdcSR net_params_200（SD2.1-base 派生・1 ステップ） | 生成型 1 ステップ拡散（UNet + VAE デコーダ） | 実写の静止画専用（動画不可） | GPU / NPU | 128 / 128（マージン 32） |
 
@@ -84,15 +84,15 @@ GPU は fp32 ONNX を DirectML で、NPU は bf16cast を Ryzen AI SW 1.8.0 の 
 |---|---|---|---|
 | Anime Video v3 | **0.46 秒** | 0.47 秒 | 49.4 dB |
 | 4xNomosUni SPAN | 0.51 秒 | **0.25 秒** | 46.9 dB |
-| Real-ESRGAN（AMD縮小版） | 2.78 秒 | 2.07 秒 | 37.9 dB** |
+| Real-ESRGAN General v3 | 0.61 秒† | 0.65 秒† | 43.7 dB† |
 | SwinIR-M | 59 秒 | 82 秒 | 38.5 dB |
 | AdcSR（112 タイル） | 108 秒 | 247 秒（1 タイル 2.05 秒 = 前半 0.7 + 後半 1.3） | 45.4 dB*** |
 
 \* 同一モデルの fp32 出力との PSNR。40 dB 前後は目視でほぼ判別不能の水準。
-\*\* Ryzen AI 1.7.1 時点の測定値（1.8.0 では速度のみ再測定）。
+† 2026-10-11 に測定。同じときに測った Anime Video v3 は GPU 0.37 秒・NPU 0.43 秒、4xNomosUni SPAN は GPU 0.47 秒・NPU 0.25 秒。忠実度は 1280x534 の写真 1 枚で GPU 版と比較した値。
 \*\*\* 1280x534 の写真 1 枚（180 タイル）を GPU 版と比較した値。AdcSR は 1280x534 で GPU 約 4.5 分、NPU 約 6.5 分。
 NPU の値は NPU 電源モード Default での測定。`xrt-smi configure --pmode turbo`（AC 電源時）では同じキャッシュのまま
-Anime Video v3 0.35 秒、4xNomosUni SPAN 0.18 秒、Real-ESRGAN（AMD縮小版）1.23 秒、SwinIR-M 49 秒、AdcSR 131 秒（1280x534 で約 3.1 分）、
+Anime Video v3 0.35 秒、4xNomosUni SPAN 0.18 秒、SwinIR-M 49 秒、AdcSR 131 秒（1280x534 で約 3.1 分）、
 動画は 4xNomosUni SPAN 4.89 fps、Anime Video v3 2.77 fps。出力は Default と同一。
 測定条件と高速化の内容は [ryzen-ai-npu-super-resolution-notes](https://github.com/tomhda/ryzen-ai-npu-super-resolution-notes) を参照。
 
@@ -104,7 +104,7 @@ NPU 用モデルの初回変換（VAIML コンパイル）。アプリの「NPU 
 |---|---|---|---|
 | Anime Video v3（tail-cut body, 512 タイル, bf16cast） | 903 秒（約 15 分） | 約 6%（1 コア相当） | 約 1.9GB |
 | 4xNomosUni SPAN（tail-cut body, 512 タイル, fp32 直接） | 850 秒（約 14 分） | 約 6% | 約 1.2GB |
-| Real-ESRGAN（AMD縮小版）（256 タイル, bf16cast） | 1529 秒（約 25 分） | 約 6% | 約 1.3GB |
+| Real-ESRGAN General v3（tail-cut body, 512 タイル, bf16cast） | 1210 秒（約 20 分。2026-10-11 の測定） | 未測定 | 未測定 |
 | SwinIR-M（256 タイル, bf16cast） | 3918 秒（約 65 分） | 約 6% | 約 25GB |
 | AdcSR（128 タイル, 前半＋後半） | 前半 5201 秒 + 後半 1811 秒（2026-09-12 の測定） | 未測定 | 未測定 |
 

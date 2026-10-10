@@ -4,7 +4,7 @@
 
 機械固有の絶対パスはソースへ埋め込まない。重み・ONNX・NPU キャッシュは git へ追加しない。
 
-## Anime Video v3 / 4xNomosUni SPAN / Real-ESRGAN（AMD縮小版）
+## Anime Video v3 / 4xNomosUni SPAN
 
 ```powershell
 .venv\Scripts\python.exe scripts\get_ai_models.py --list
@@ -17,6 +17,23 @@ Ryzen AI 環境での bf16cast 変換コマンドを表示する。
 
 ```text
 python -m quark.onnx.tools.convert_fp32_to_bf16 --input <fp32.onnx> --output <bf16cast.onnx> --format with_cast
+```
+
+## Real-ESRGAN General v3
+
+重み `realesr-general-x4v3.pth` を [xinntao/Real-ESRGAN の Releases（v0.2.5.0）](https://github.com/xinntao/Real-ESRGAN/releases/tag/v0.2.5.0) から取得する
+（SHA-256 `8dc7edb9ac80ccdc30c3a5dca6616509367f05fbc184ad95b731f05bece96292`）。
+
+```powershell
+<torch の入った python> scripts/npu/export_generalv3.py --weights <realesr-general-x4v3.pth> --out <models>
+```
+
+GPU 用の `generalv3_nchw_256x256_fp32.onnx` / `generalv3_nchw_512x512_fp32.onnx` と、NPU 用の元になる
+`generalv3dp_nchw_512x512_fp32.onnx`（PReLU を ReLU 2 本に分解した版）ができる。NPU 用は、続けて bf16cast 変換と末尾の切り離しを行う。
+
+```powershell
+<Ryzen AI環境のpython> -m quark.onnx.tools.convert_fp32_to_bf16 --input <models>/generalv3dp_nchw_512x512_fp32.onnx --output <models>/generalv3dp_nchw_512x512_bf16cast.onnx --format with_cast
+<Ryzen AI環境のpython> scripts/npu/split_tail.py --input <models>/generalv3dp_nchw_512x512_bf16cast.onnx --body <models>/generalv3dp_body_nchw_512x512_bf16cast.onnx --manifest <models>/generalv3dp_body_nchw_512x512.tail.json
 ```
 
 ## SwinIR-M
