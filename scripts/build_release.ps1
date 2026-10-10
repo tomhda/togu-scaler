@@ -102,7 +102,8 @@ try {
         @{ Name = "animevideov3_nchw_512x512_fp32.onnx"; Source = (Resolve-Model "animevideov3/512" (Join-Path $modelRoots.Top "animevideov3_nchw_512x512_fp32.onnx")) }
         @{ Name = "purephoto_nchw_256x256_fp32.onnx"; Source = (Resolve-Model "4xNomosUni/256" (Join-Path $modelRoots.Span "purephoto_nchw_256x256_fp32.onnx")) }
         @{ Name = "purephoto_nchw_512x512_fp32.onnx"; Source = (Resolve-Model "4xNomosUni/512" (Join-Path $modelRoots.Span "purephoto_nchw_512x512_fp32.onnx")) }
-        @{ Name = "realesrgan_nchw_256x256_fp32.onnx"; Source = (Resolve-Model "AMD-RRDB/256" (Join-Path $modelRoots.Top "realesrgan_nchw_256x256_fp32.onnx")) }
+        @{ Name = "generalv3_nchw_256x256_fp32.onnx"; Source = (Resolve-Model "general-x4v3/256" (Join-Path $modelRoots.Top "generalv3_nchw_256x256_fp32.onnx")) }
+        @{ Name = "generalv3_nchw_512x512_fp32.onnx"; Source = (Resolve-Model "general-x4v3/512" (Join-Path $modelRoots.Top "generalv3_nchw_512x512_fp32.onnx")) }
         @{ Name = "swinir_nchw_256x256_fp32.onnx"; Source = (Resolve-Model "SwinIR/256" (Join-Path $modelRoots.Span "swinir_nchw_256x256_fp32.onnx")) }
     )
     $adcsrGpu = @(
@@ -111,7 +112,7 @@ try {
     $npuModels = @(
         @{ Name = "animevideov3dp_nchw_512x512_bf16cast.onnx"; Source = (Resolve-Model "animevideov3/NPU512" (Join-Path $modelRoots.Top "animevideov3dp_nchw_512x512_bf16cast.onnx")) }
         @{ Name = "purephoto_nchw_512x512_bf16cast.onnx"; Source = (Resolve-Model "4xNomosUni/NPU512" (Join-Path $modelRoots.Span "purephoto_nchw_512x512_bf16cast.onnx")) }
-        @{ Name = "realesrgan_nchw_256x256_bf16cast.onnx"; Source = (Resolve-Model "AMD-RRDB/NPU256" (Join-Path $modelRoots.Top "realesrgan_nchw_256x256_bf16cast.onnx")) }
+        @{ Name = "generalv3dp_nchw_512x512_bf16cast.onnx"; Source = (Resolve-Model "general-x4v3/NPU512" (Join-Path $modelRoots.Top "generalv3dp_nchw_512x512_bf16cast.onnx")) }
         @{ Name = "swinir_nchw_256x256_bf16cast.onnx"; Source = (Resolve-Model "SwinIR/NPU256" (Join-Path $modelRoots.Span "swinir_nchw_256x256_bf16cast.onnx")) }
         # tail-cut body（末尾の DepthToSpace 以降を CPU で実行。全体モデルも残す）。
         # scripts/npu/split_tail.py で models/ai/ の全体モデルから生成する。
@@ -119,6 +120,8 @@ try {
         @{ Name = "purephoto_body_nchw_512x512_fp32.onnx"; Source = (Resolve-Model "4xNomosUni/NPU512 tail-cut body" (Join-Path $repo "models\ai\purephoto_body_nchw_512x512_fp32.onnx")) }
         @{ Name = "animevideov3dp_body_nchw_512x512.tail.json"; Source = (Resolve-Model "animevideov3/NPU512 tail-cut manifest" (Join-Path $repo "models\ai\animevideov3dp_body_nchw_512x512.tail.json")) }
         @{ Name = "purephoto_body_nchw_512x512.tail.json"; Source = (Resolve-Model "4xNomosUni/NPU512 tail-cut manifest" (Join-Path $repo "models\ai\purephoto_body_nchw_512x512.tail.json")) }
+        @{ Name = "generalv3dp_body_nchw_512x512_bf16cast.onnx"; Source = (Resolve-Model "general-x4v3/NPU512 tail-cut body" (Join-Path $repo "models\ai\generalv3dp_body_nchw_512x512_bf16cast.onnx")) }
+        @{ Name = "generalv3dp_body_nchw_512x512.tail.json"; Source = (Resolve-Model "general-x4v3/NPU512 tail-cut manifest" (Join-Path $repo "models\ai\generalv3dp_body_nchw_512x512.tail.json")) }
     )
     $adcsrNpu = @(
         @{ Name = "adcsr_front_nchw_128x128_bf16cast.onnx"; Source = (Resolve-Model "AdcSR/NPU前半" (Join-Path $modelRoots.Top "adcsr_front_nchw_128x128_bf16cast.onnx")) }
@@ -137,7 +140,8 @@ NOTICE-models-gpu-fp32.txt — GPU（DirectML）用 fp32 ONNX モデル
 | animevideov3_nchw_512x512_fp32.onnx | animevideov3（Anime Video v3） | 同上 | 同上 |
 | purephoto_nchw_256x256_fp32.onnx | 4xNomosUni（4xNomosUni SPAN） | 4xNomosUni_span_multijpg（Philip Hofmann/Phips） | CC-BY-4.0（LICENSE-CC-BY-4.0.txt。表示の保持が必要） |
 | purephoto_nchw_512x512_fp32.onnx | 4xNomosUni（4xNomosUni SPAN） | 同上 | 同上 |
-| realesrgan_nchw_256x256_fp32.onnx | AMD-RRDB（Real-ESRGAN（AMD縮小版）） | AMD 縮小 RRDB 版 | Research-only RAIL-MS（LICENSE-RAIL-MS-AMD-RRDB.txt。研究用途限定） |
+| generalv3_nchw_256x256_fp32.onnx | general-x4v3（Real-ESRGAN General v3） | realesr-general-x4v3 | BSD 3-Clause（LICENSE-BSD-3-Real-ESRGAN.txt） |
+| generalv3_nchw_512x512_fp32.onnx | general-x4v3（Real-ESRGAN General v3） | realesr-general-x4v3 | BSD 3-Clause（LICENSE-BSD-3-Real-ESRGAN.txt） |
 | swinir_nchw_256x256_fp32.onnx | SwinIR（SwinIR-M） | 003_realSR_BSRGAN_DFO_s64w8_SwinIR-M_x4_GAN（Jingyun Liang） | Apache-2.0（LICENSE-Apache-2.0-SwinIR.txt） |
 
 取得元と SHA-256 はリポジトリの docs/span-bench-results.md を参照。
@@ -171,12 +175,14 @@ NOTICE-models-npu-bf16.txt — NPU（Ryzen AI VitisAI EP）用 bf16cast ONNX モ
 |---|---|---|---|
 | animevideov3dp_nchw_512x512_bf16cast.onnx | animevideov3（Anime Video v3） | realesr-animevideov3 の PReLU 分解版（xinntao/Real-ESRGAN 由来） | BSD-3-Clause（LICENSE-BSD-3-Real-ESRGAN.txt） |
 | purephoto_nchw_512x512_bf16cast.onnx | 4xNomosUni（4xNomosUni SPAN） | 4xNomosUni_span_multijpg（Philip Hofmann/Phips） | CC-BY-4.0（LICENSE-CC-BY-4.0.txt。表示の保持が必要） |
-| realesrgan_nchw_256x256_bf16cast.onnx | AMD-RRDB（Real-ESRGAN（AMD縮小版）） | AMD 縮小 RRDB 版 | Research-only RAIL-MS（LICENSE-RAIL-MS-AMD-RRDB.txt。研究用途限定） |
+| generalv3dp_nchw_512x512_bf16cast.onnx | general-x4v3（Real-ESRGAN General v3） | realesr-general-x4v3 | BSD 3-Clause（LICENSE-BSD-3-Real-ESRGAN.txt） |
 | swinir_nchw_256x256_bf16cast.onnx | SwinIR（SwinIR-M） | 003_realSR_BSRGAN_DFO_s64w8_SwinIR-M_x4_GAN（Jingyun Liang） | Apache-2.0（LICENSE-Apache-2.0-SwinIR.txt） |
 | animevideov3dp_body_nchw_512x512_bf16cast.onnx | animevideov3（Anime Video v3） | 上の PReLU 分解版の tail-cut body | BSD-3-Clause（LICENSE-BSD-3-Real-ESRGAN.txt） |
 | purephoto_body_nchw_512x512_fp32.onnx | 4xNomosUni（4xNomosUni SPAN） | 4xNomosUni_span_multijpg の tail-cut body（fp32） | CC-BY-4.0（LICENSE-CC-BY-4.0.txt。表示の保持が必要） |
 | animevideov3dp_body_nchw_512x512.tail.json | animevideov3（Anime Video v3） | tail-cut マニフェスト（後処理の定義） | — |
 | purephoto_body_nchw_512x512.tail.json | 4xNomosUni（4xNomosUni SPAN） | tail-cut マニフェスト（後処理の定義） | — |
+| generalv3dp_body_nchw_512x512_bf16cast.onnx | general-x4v3（Real-ESRGAN General v3） | 上のモデルの tail-cut body | BSD-3-Clause（LICENSE-BSD-3-Real-ESRGAN.txt） |
+| generalv3dp_body_nchw_512x512.tail.json | general-x4v3（Real-ESRGAN General v3） | tail-cut マニフェスト（後処理の定義） | — |
 '@
 
     $noticeAdcsrNpu = @'
@@ -277,7 +283,6 @@ seam_templates/ の AdcSR 格子補正テンプレート）。
     $modelLicenses = @(
         "LICENSE-BSD-3-Real-ESRGAN.txt",
         "LICENSE-CC-BY-4.0.txt",
-        "LICENSE-RAIL-MS-AMD-RRDB.txt",
         "LICENSE-Apache-2.0-SwinIR.txt"
     )
     $adcsrLicenses = @(

@@ -4,7 +4,7 @@ from pathlib import Path
 
 from app.core import helper_backend
 from app.core.settings import (
-    HELPER_MODEL_AMD_RRDB,
+    HELPER_MODEL_GENERAL,
     HELPER_MODEL_ANIME,
     HELPER_MODEL_SPAN,
     HELPER_MODEL_SWINIR,
@@ -33,31 +33,56 @@ def test_npu_short_edge_falls_back_to_gpu() -> None:
     )
 
 
-def test_realesrgan_winml_resolves_256_model_from_env_first(
+def _stage_general_gpu_files(env_models: Path) -> tuple[Path, Path]:
+    small = env_models / "generalv3_nchw_256x256_fp32.onnx"
+    large = env_models / "generalv3_nchw_512x512_fp32.onnx"
+    small.touch()
+    large.touch()
+    return small, large
+
+
+def test_general_winml_resolves_512_model_for_large_image(
     monkeypatch, tmp_path
 ) -> None:
-    filename = "realesrgan_nchw_256x256_fp32.onnx"
     env_models = tmp_path / "env-models"
     env_models.mkdir()
-    expected = env_models / filename
-    expected.touch()
+    _small, large = _stage_general_gpu_files(env_models)
     monkeypatch.setenv(helper_backend.MODELS_DIR_ENV, str(env_models))
 
     settings = UpscaleSettings(
         backend=UpscaleBackend.WINML_GPU,
-        model=HELPER_MODEL_AMD_RRDB,
+        model=HELPER_MODEL_GENERAL,
     )
     backend, tile, model_path = helper_backend._session_spec(settings, 854, 480)
 
     assert backend == UpscaleBackend.WINML_GPU
-    assert tile == 256
-    assert model_path == expected.resolve()
+    assert tile == 512
+    assert model_path == large.resolve()
 
 
-def test_realesrgan_npu_resolves_256_model_from_vendor(
+def test_general_winml_resolves_256_model_for_small_image(
     monkeypatch, tmp_path
 ) -> None:
-    filename = "realesrgan_nchw_256x256_bf16cast.onnx"
+    env_models = tmp_path / "env-models"
+    env_models.mkdir()
+    small, _large = _stage_general_gpu_files(env_models)
+    monkeypatch.setenv(helper_backend.MODELS_DIR_ENV, str(env_models))
+
+    settings = UpscaleSettings(
+        backend=UpscaleBackend.WINML_GPU,
+        model=HELPER_MODEL_GENERAL,
+    )
+    backend, tile, model_path = helper_backend._session_spec(settings, 640, 360)
+
+    assert backend == UpscaleBackend.WINML_GPU
+    assert tile == 256
+    assert model_path == small.resolve()
+
+
+def test_general_npu_resolves_512_model_from_vendor(
+    monkeypatch, tmp_path
+) -> None:
+    filename = "generalv3dp_nchw_512x512_bf16cast.onnx"
     env_models = tmp_path / "env-models"
     vendor_models = tmp_path / "vendor-models"
     env_models.mkdir()
@@ -69,13 +94,37 @@ def test_realesrgan_npu_resolves_256_model_from_vendor(
 
     settings = UpscaleSettings(
         backend=UpscaleBackend.NPU_NATIVE,
-        model=HELPER_MODEL_AMD_RRDB,
+        model=HELPER_MODEL_GENERAL,
     )
     backend, tile, model_path = helper_backend._session_spec(settings, 854, 480)
 
     assert backend == UpscaleBackend.NPU_NATIVE
-    assert tile == 256
+    assert tile == 512
     assert model_path == expected.resolve()
+
+
+def test_general_npu_uses_tail_body_when_present(monkeypatch, tmp_path) -> None:
+    from app.core.settings import HELPER_MODEL_NPU_TAIL
+
+    body_name, manifest_name = HELPER_MODEL_NPU_TAIL[HELPER_MODEL_GENERAL][512]
+    for name in (
+        "generalv3dp_nchw_512x512_bf16cast.onnx", body_name, manifest_name,
+    ):
+        (tmp_path / name).touch()
+    monkeypatch.setenv(helper_backend.MODELS_DIR_ENV, str(tmp_path))
+    monkeypatch.setattr(helper_backend, "_npu_python", lambda: Path("python.exe"))
+    monkeypatch.setattr(helper_backend, "_npu_script", lambda: Path("npu_serve.py"))
+    monkeypatch.setattr(helper_backend, "_cache_hit", lambda _path: True)
+    monkeypatch.setattr(helper_backend, "ServeClient", _CapturingServeClient)
+
+    settings = UpscaleSettings(
+        backend=UpscaleBackend.NPU_NATIVE, model=HELPER_MODEL_GENERAL)
+    session = helper_backend.open_session(settings, 854, 480)
+
+    assert session.backend == UpscaleBackend.NPU_NATIVE
+    command = _CapturingServeClient.last_command
+    assert command[command.index("--model") + 1].endswith(body_name)
+    assert command[command.index("--tail") + 1].endswith(manifest_name)
 
 
 def test_winml_helper_uses_renamed_tool_layout(monkeypatch, tmp_path) -> None:
@@ -188,7 +237,7 @@ def test_overlap_for_model_gives_adcsr_32_and_default_16() -> None:
     assert helper_backend.overlap_for_model("adcsr") == 32
     assert helper_backend.overlap_for_model(HELPER_MODEL_ANIME) == 16
     assert helper_backend.overlap_for_model(HELPER_MODEL_SPAN) == 16
-    assert helper_backend.overlap_for_model(HELPER_MODEL_AMD_RRDB) == 16
+    assert helper_backend.overlap_for_model(HELPER_MODEL_GENERAL) == 16
     assert helper_backend.overlap_for_model(HELPER_MODEL_SWINIR) == 16
     assert helper_backend.overlap_for_model("unknown-model") == 16
     assert helper_backend.overlap_for_model(None) == 16
@@ -227,14 +276,14 @@ def test_adcsr_serve_uses_overlap_32(monkeypatch) -> None:
 
 
 def test_non_adcsr_serve_uses_overlap_16(monkeypatch, tmp_path) -> None:
-    filename = "realesrgan_nchw_256x256_fp32.onnx"
+    filename = "generalv3_nchw_512x512_fp32.onnx"
     (tmp_path / filename).touch()
     monkeypatch.setenv(helper_backend.MODELS_DIR_ENV, str(tmp_path))
     from pathlib import Path
 
     monkeypatch.setattr(helper_backend, "_winml_helper", lambda: Path("winml-sr.exe"))
     monkeypatch.setattr(helper_backend, "ServeClient", _CapturingServeClient)
-    settings = UpscaleSettings(backend=UpscaleBackend.WINML_GPU, model=HELPER_MODEL_AMD_RRDB)
+    settings = UpscaleSettings(backend=UpscaleBackend.WINML_GPU, model=HELPER_MODEL_GENERAL)
     session = helper_backend.open_session(settings, 854, 480)
     assert session.backend == UpscaleBackend.WINML_GPU
     command = _CapturingServeClient.last_command
@@ -244,19 +293,19 @@ def test_non_adcsr_serve_uses_overlap_16(monkeypatch, tmp_path) -> None:
 def test_npu_serve_goes_through_overlap_for_model(monkeypatch, tmp_path) -> None:
     from pathlib import Path
 
-    filename = "realesrgan_nchw_256x256_bf16cast.onnx"
+    filename = "generalv3dp_nchw_512x512_bf16cast.onnx"
     (tmp_path / filename).touch()
     monkeypatch.setenv(helper_backend.MODELS_DIR_ENV, str(tmp_path))
     monkeypatch.setattr(helper_backend, "_npu_python", lambda: tmp_path / "python.exe")
     monkeypatch.setattr(helper_backend, "_npu_script", lambda: tmp_path / "npu_serve.py")
     monkeypatch.setattr(helper_backend, "_cache_hit", lambda _path: True)
     monkeypatch.setattr(helper_backend, "ServeClient", _CapturingServeClient)
-    settings = UpscaleSettings(backend=UpscaleBackend.NPU_NATIVE, model=HELPER_MODEL_AMD_RRDB)
+    settings = UpscaleSettings(backend=UpscaleBackend.NPU_NATIVE, model=HELPER_MODEL_GENERAL)
     session = helper_backend.open_session(settings, 854, 480)
     assert session.backend == UpscaleBackend.NPU_NATIVE
     command = _CapturingServeClient.last_command
     assert command[command.index("--overlap") + 1] == str(
-        helper_backend.overlap_for_model(HELPER_MODEL_AMD_RRDB)
+        helper_backend.overlap_for_model(HELPER_MODEL_GENERAL)
     )
 
 
@@ -292,12 +341,12 @@ def test_adcsr_npu_request_gets_seam_template_via_gpu(monkeypatch) -> None:
 def test_non_adcsr_serve_has_no_seam_template(monkeypatch, tmp_path) -> None:
     from pathlib import Path
 
-    filename = "realesrgan_nchw_256x256_fp32.onnx"
+    filename = "generalv3_nchw_512x512_fp32.onnx"
     (tmp_path / filename).touch()
     monkeypatch.setenv(helper_backend.MODELS_DIR_ENV, str(tmp_path))
     monkeypatch.setattr(helper_backend, "_winml_helper", lambda: Path("winml-sr.exe"))
     monkeypatch.setattr(helper_backend, "ServeClient", _CapturingServeClient)
-    settings = UpscaleSettings(backend=UpscaleBackend.WINML_GPU, model=HELPER_MODEL_AMD_RRDB)
+    settings = UpscaleSettings(backend=UpscaleBackend.WINML_GPU, model=HELPER_MODEL_GENERAL)
     helper_backend.open_session(settings, 854, 480)
     assert "--seam-template" not in _CapturingServeClient.last_command
 
@@ -414,10 +463,10 @@ def test_adcsr_npu_two_stage_command_miss_allows_compile(monkeypatch, tmp_path) 
 
 
 def test_non_adcsr_npu_has_no_two_stage_flags(monkeypatch, tmp_path) -> None:
-    filename = "realesrgan_nchw_256x256_bf16cast.onnx"
+    filename = "generalv3dp_nchw_512x512_bf16cast.onnx"
     (tmp_path / filename).touch()
     monkeypatch.setenv(helper_backend.MODELS_DIR_ENV, str(tmp_path))
-    settings = UpscaleSettings(backend=UpscaleBackend.NPU_NATIVE, model=HELPER_MODEL_AMD_RRDB)
+    settings = UpscaleSettings(backend=UpscaleBackend.NPU_NATIVE, model=HELPER_MODEL_GENERAL)
     _open_npu_session(monkeypatch, settings)
     assert "--model-back" not in _CapturingServeClient.last_command
     assert "--manifest" not in _CapturingServeClient.last_command

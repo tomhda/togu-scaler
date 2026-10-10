@@ -304,7 +304,7 @@ def test_npu_rejects_unsupported_model(tmp_path: Path) -> None:
     [
         ("animevideov3", "realesr-animevideov3"),
         ("4xNomosUni", "realesrgan-x4plus"),
-        ("AMD-RRDB", "realesrgan-x4plus"),
+        ("general-x4v3", "realesr-general-x4v3"),
         ("SwinIR", "realesrgan-x4plus"),
     ],
 )

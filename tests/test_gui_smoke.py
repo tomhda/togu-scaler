@@ -209,7 +209,7 @@ def test_upscale_and_interpolation_models_are_independent(app, tmp_path):
 def test_helper_model_none_is_available_and_saved_as_upscale_off(app):
     """新AIでも「なし」を選べ、RIFEのみのジョブ設定を作れる。"""
     from app.core.settings import (
-        HELPER_MODEL_AMD_RRDB,
+        HELPER_MODEL_GENERAL,
         HELPER_MODEL_ANIME,
         HELPER_MODEL_SPAN,
         HELPER_MODEL_SWINIR,
@@ -228,7 +228,7 @@ def test_helper_model_none_is_available_and_saved_as_upscale_off(app):
             None,
             HELPER_MODEL_ANIME,
             HELPER_MODEL_SPAN,
-            HELPER_MODEL_AMD_RRDB,
+            HELPER_MODEL_GENERAL,
             HELPER_MODEL_SWINIR,
             HELPER_MODEL_ADCSR,
         ]
@@ -316,7 +316,7 @@ def test_backend_combo_maps_new_helpers_and_limits_scale_to_4x(app, monkeypatch,
 
     from app.core import binaries
     from app.core.settings import (
-        HELPER_MODEL_AMD_RRDB,
+        HELPER_MODEL_GENERAL,
         HELPER_MODEL_ANIME,
         HELPER_MODEL_SPAN,
         HELPER_MODEL_SWINIR,
@@ -353,17 +353,17 @@ def test_backend_combo_maps_new_helpers_and_limits_scale_to_4x(app, monkeypatch,
         assert win._scale_btns[4].isEnabled() is True
         assert win.image_model_combo.isEnabled() is True
         assert [win.image_model_combo.itemData(i) for i in range(win.image_model_combo.count())] == [
-            None, HELPER_MODEL_ANIME, HELPER_MODEL_SPAN, HELPER_MODEL_AMD_RRDB,
+            None, HELPER_MODEL_ANIME, HELPER_MODEL_SPAN, HELPER_MODEL_GENERAL,
             HELPER_MODEL_SWINIR,
             HELPER_MODEL_ADCSR,
         ]
         assert [win.video_model_combo.itemData(i) for i in range(win.video_model_combo.count())] == [
-            None, HELPER_MODEL_ANIME, HELPER_MODEL_SPAN, HELPER_MODEL_AMD_RRDB,
+            None, HELPER_MODEL_ANIME, HELPER_MODEL_SPAN, HELPER_MODEL_GENERAL,
             HELPER_MODEL_SWINIR,
         ]
         assert win.image_model_combo.itemText(1).startswith("Anime Video v3")
         assert win.image_model_combo.itemText(2).startswith("4xNomosUni SPAN")
-        assert win.image_model_combo.itemText(3).startswith("Real-ESRGAN（AMD縮小版）")
+        assert win.image_model_combo.itemText(3).startswith("Real-ESRGAN General v3")
         assert all(
             text not in "\n".join(
                 win.image_model_combo.itemText(i) for i in range(win.image_model_combo.count())
@@ -556,7 +556,7 @@ def test_model_picker_shows_speed_quality_info(app, tmp_path):
     import shutil as _shutil
 
     from app.core.settings import (
-        HELPER_MODEL_AMD_RRDB,
+        HELPER_MODEL_GENERAL,
         HELPER_MODEL_ANIME,
         HELPER_MODEL_SPAN,
         HELPER_MODEL_SWINIR,
@@ -577,12 +577,12 @@ def test_model_picker_shows_speed_quality_info(app, tmp_path):
         # 自動（GPU優先）では実モデル名の新AIモデルを表示する。
         # ヘッダー（画像一括）と右列（選んだファイル）で同じ並びになる。
         assert [win.image_model_combo.itemData(i) for i in range(win.image_model_combo.count())] == [
-            None, HELPER_MODEL_ANIME, HELPER_MODEL_SPAN, HELPER_MODEL_AMD_RRDB,
+            None, HELPER_MODEL_ANIME, HELPER_MODEL_SPAN, HELPER_MODEL_GENERAL,
             HELPER_MODEL_SWINIR,
             HELPER_MODEL_ADCSR,
         ]
         assert [win.model_combo.itemData(i) for i in range(win.model_combo.count())] == [
-            None, HELPER_MODEL_ANIME, HELPER_MODEL_SPAN, HELPER_MODEL_AMD_RRDB,
+            None, HELPER_MODEL_ANIME, HELPER_MODEL_SPAN, HELPER_MODEL_GENERAL,
             HELPER_MODEL_SWINIR,
             HELPER_MODEL_ADCSR,
         ]
@@ -591,16 +591,16 @@ def test_model_picker_shows_speed_quality_info(app, tmp_path):
         # 開いた一覧の印は今のまま残る。
         assert win.model_hint.text() == "アニメ向け・速い"
 
-        # SPAN/AMD縮小版も同じ実モデル名の仕組みで選べる。
+        # SPAN/General v3も同じ実モデル名の仕組みで選べる。
         # 右列で変えると個別になるが、説明行の内容は同じ規則で出る。
         win.model_combo.setCurrentIndex(win.model_combo.findData(HELPER_MODEL_SPAN))
         app.processEvents()
         assert win.model_combo.currentText().startswith("4xNomosUni SPAN")
         assert win.model_hint.text() == "実写向け・速い"
-        win.model_combo.setCurrentIndex(win.model_combo.findData(HELPER_MODEL_AMD_RRDB))
+        win.model_combo.setCurrentIndex(win.model_combo.findData(HELPER_MODEL_GENERAL))
         app.processEvents()
-        assert win.model_combo.currentText().startswith("Real-ESRGAN（AMD縮小版）")
-        assert win.model_hint.text() == "実写向け・くっきり・やや遅い"
+        assert win.model_combo.currentText().startswith("Real-ESRGAN General v3")
+        assert win.model_hint.text() == "実写向け・くっきり・速い"
 
         # Vulkanでは旧モデルのバッジは残るが、説明は 1 行になる。
         vulkan = win.backend_combo.findData(UpscaleBackend.VULKAN.value)
@@ -626,6 +626,50 @@ def test_model_picker_shows_speed_quality_info(app, tmp_path):
         win.video_model_combo.setCurrentIndex(0)
         app.processEvents()
         assert "フレーム補間だけ" in win.model_hint.text()
+    finally:
+        win.close()
+        app.processEvents()
+
+
+def test_model_picker_lists_general_v3_without_amd(app, tmp_path):
+    """モデルの一覧に General v3 があり、AMD 縮小版が無い。"""
+    import shutil as _shutil
+
+    from app.core.settings import (
+        HELPER_MODEL_GENERAL,
+        HELPER_MODEL_ANIME,
+        HELPER_MODEL_SPAN,
+        HELPER_MODEL_SWINIR,
+        HELPER_MODEL_ADCSR,
+    )
+    from app.gui.main_window import MainWindow
+
+    win = MainWindow()
+    app.processEvents()
+    try:
+        src = tmp_path / "pic.png"
+        _shutil.copy(SAMPLE_IMAGE, src)
+        ok, _ = win.add_path(str(src))
+        assert ok is True
+        app.processEvents()
+
+        assert [win.image_model_combo.itemData(i) for i in range(win.image_model_combo.count())] == [
+            None, HELPER_MODEL_ANIME, HELPER_MODEL_SPAN, HELPER_MODEL_GENERAL,
+            HELPER_MODEL_SWINIR,
+            HELPER_MODEL_ADCSR,
+        ]
+        assert win.image_model_combo.itemText(3).startswith("Real-ESRGAN General v3")
+        texts = "\n".join(
+            win.image_model_combo.itemText(i)
+            for i in range(win.image_model_combo.count())
+        )
+        assert "AMD" not in texts
+        assert "縮小版" not in texts
+
+        win.model_combo.setCurrentIndex(win.model_combo.findData(HELPER_MODEL_GENERAL))
+        app.processEvents()
+        assert win.model_combo.currentText().startswith("Real-ESRGAN General v3")
+        assert win.model_hint.text() == "実写向け・くっきり・速い"
     finally:
         win.close()
         app.processEvents()

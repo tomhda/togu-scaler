@@ -308,6 +308,61 @@ def test_run_validation_processes_nothing(
     assert payload["error"]["fix"]
 
 
+@pytest.mark.parametrize("model", [
+    "AMD-RRDB", "amd-rrdb", "Amd-Rrdb",
+    "realesrgan-amd", "realesrgan-amd-rrdb",
+])
+def test_run_removed_model_is_usage_error(
+        monkeypatch, tmp_path, capsys, model):
+    """外した AMD 縮小版は処理を始めず exit 2・model_removed で止まる。"""
+    from app.core import engine
+
+    def _boom(*_a, **_k):
+        raise AssertionError("must not process")
+
+    monkeypatch.setattr(engine, "process_job", _boom)
+    src = _make_png(tmp_path / "a.png")
+    code, out, _err = _run(
+        ["run", str(src), "--model", model, "--json"], capsys)
+    assert code == 2
+    payload = _json_out(out)
+    assert payload["ok"] is False
+    assert payload["error"]["code"] == "model_removed"
+    assert "general-x4v3" in payload["error"]["fix"]
+
+
+def test_run_removed_model_ja_wording(monkeypatch, tmp_path, capsys):
+    """--lang ja では外したモデルの案内が日本語になる。"""
+    from app.core import engine
+
+    def _boom(*_a, **_k):
+        raise AssertionError("must not process")
+
+    monkeypatch.setattr(engine, "process_job", _boom)
+    src = _make_png(tmp_path / "a.png")
+    code, out, _err = _run(
+        ["run", str(src), "--model", "AMD-RRDB",
+         "--lang", "ja", "--json"], capsys)
+    assert code == 2
+    payload = _json_out(out)
+    assert payload["error"]["code"] == "model_removed"
+    assert payload["error"]["message"] == \
+        "Real-ESRGAN（AMD縮小版）は v0.13.0 で外しました。"
+    assert payload["error"]["fix"] == \
+        "--model general-x4v3（Real-ESRGAN General v3）を使ってください。"
+
+
+def test_models_lists_general_without_amd(monkeypatch, capsys):
+    """models には general-x4v3 があり、AMD 縮小版のキー・別名が無い。"""
+    monkeypatch.setattr(cli, "_model_available", lambda _b, _k: True)
+    code, out, _err = _run(["models", "--backend", "gpu", "--json"], capsys)
+    assert code == 0
+    keys = [entry["key"] for entry in json.loads(out)["upscale"]]
+    assert "general-x4v3" in keys
+    assert "AMD-RRDB" not in keys
+    assert not {"amd-rrdb", "realesrgan-amd", "realesrgan-amd-rrdb"} & set(keys)
+
+
 def test_run_npu_not_converted_processes_nothing(
         monkeypatch, tmp_path, capsys):
     from app.core import engine, media, npu_prepare

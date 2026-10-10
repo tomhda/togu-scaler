@@ -240,7 +240,6 @@ $lists = Get-ModelLists
 $baseLicenses = @(
     "LICENSE-BSD-3-Real-ESRGAN.txt",
     "LICENSE-CC-BY-4.0.txt",
-    "LICENSE-RAIL-MS-AMD-RRDB.txt",
     "LICENSE-Apache-2.0-SwinIR.txt"
 )
 $adcsrLicenses = @(

@@ -41,7 +41,7 @@ togu-scaler-cli models --json
   Upscaling entries also have `image` and `video` (what the model can process).
 - Use `key` as the value of `--model` / `--interpolation`. Only entries with `"available": true` work;
   the others need an add-on kit (see "Add-on kits" below).
-- Starting points: `animevideov3` for anime and CG, `4xNomosUni` for live action. Both are fast.
+- Starting points: `animevideov3` for anime and CG, `4xNomosUni` or `general-x4v3` for live action. All three are fast.
   `SwinIR` and `AdcSR` take about a minute or more per image, so use them for single stills.
   `AdcSR` can't process videos (`"video": false`).
 
@@ -138,7 +138,8 @@ Errors look like this, on stdout with `--json` (otherwise as `error:` and `fix:`
 ```
 
 `code` is a fixed name, and `fix` says what to do next. Common codes: `input_not_found`,
-`unsupported_input`, `model_unknown`, `model_not_for_video` (AdcSR is for still images),
+`unsupported_input`, `model_unknown`, `model_removed` (`AMD-RRDB` was removed in v0.13.0;
+use `general-x4v3`), `model_not_for_video` (AdcSR is for still images),
 `kit_missing` (an add-on is not installed), `npu_not_converted`, `fps_not_multiple`
 (FILM takes `--factor`, not `--fps`), `fps_too_low`, `output_exists`, `process_failed`.
 

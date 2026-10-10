@@ -111,7 +111,7 @@ if ($WithHelper) {
     # モデルの帰属とライセンス（CC-BY の表示、研究用途限定の条件などを含む）
     $modelDocs = @(
         "NOTICE-models-gpu-fp32.txt", "LICENSE-BSD-3-Real-ESRGAN.txt", "LICENSE-CC-BY-4.0.txt",
-        "LICENSE-RAIL-MS-AMD-RRDB.txt", "LICENSE-Apache-2.0-SwinIR.txt"
+        "LICENSE-Apache-2.0-SwinIR.txt"
     )
     foreach ($name in $modelDocs) {
         $doc = Join-Path $modelsSource $name

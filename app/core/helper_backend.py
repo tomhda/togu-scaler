@@ -30,7 +30,6 @@ from .settings import (
     DEFAULT_NPU_CACHE_DIR,
     DEFAULT_VENDOR_MODELS_DIR,
     HELPER_MODEL_FILES,
-    HELPER_MODEL_AMD_RRDB,
     HELPER_MODEL_ADCSR,
     HELPER_MODEL_SWINIR,
     HELPER_DEFAULT_OVERLAP,
@@ -488,7 +487,7 @@ def npu_compiled(model: str | ModelFamily | None) -> bool | None:
             return None
         front_path, back_path, manifest_path = two_stage
         return _two_stage_cache_hit(manifest_path, front_path, back_path)
-    tile = 256 if model_key in (HELPER_MODEL_AMD_RRDB, HELPER_MODEL_SWINIR) else 512
+    tile = 256 if model_key == HELPER_MODEL_SWINIR else 512
     try:
         model_path = _resolve_model(UpscaleBackend.NPU_NATIVE, model_key, tile)
     except HelperBackendUnavailable:
@@ -522,7 +521,7 @@ def _session_spec(
             backend = UpscaleBackend.WINML_GPU
     if model_key == HELPER_MODEL_ADCSR:
         tile = 128
-    elif model_key in (HELPER_MODEL_AMD_RRDB, HELPER_MODEL_SWINIR):
+    elif model_key == HELPER_MODEL_SWINIR:
         tile = 256
     else:
         tile = 512 if backend == UpscaleBackend.NPU_NATIVE else choose_gpu_tile(width, height)

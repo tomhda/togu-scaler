@@ -200,14 +200,12 @@ EN: dict[str, str | None] = {
     'Real-ESRGAN Anime': 'Real-ESRGAN Anime',
     # モデル表示名（Vulkan・GPU・NPU用で同じ文言）
     'Anime Video v3': 'Anime Video v3',
+    # モデル表示名（Vulkan・GPU・NPU用で同じ文言）
+    'Real-ESRGAN General v3': 'Real-ESRGAN General v3',
     # モデル表示名（Vulkan用）
-    'General Video v3（ノイズ除去強）': 'General Video v3 (strong denoise)',
-    # モデル表示名（Vulkan用）
-    'General Video v3（ノイズ除去弱）': 'General Video v3 (weak denoise)',
+    'Real-ESRGAN General v3（ノイズ除去弱）': 'Real-ESRGAN General v3 (weak denoise)',
     # モデル表示名（GPU・NPU用）
     '4xNomosUni SPAN': '4xNomosUni SPAN',
-    # モデル表示名（GPU・NPU用）
-    'Real-ESRGAN（AMD縮小版）': 'Real-ESRGAN (AMD compact)',
     # モデル表示名（GPU・NPU・CUDA用）
     'SwinIR-M': 'SwinIR-M',
     # モデル表示名（GPU・NPU用）
@@ -219,8 +217,8 @@ EN: dict[str, str | None] = {
     'アニメ向け・速い': 'For anime · Fast',
     # 説明行（4xNomosUni SPAN）
     '実写向け・速い': 'For live action · Fast',
-    # 説明行（Real-ESRGAN AMD縮小版）
-    '実写向け・くっきり・やや遅い': 'For live action · Sharp · Somewhat slow',
+    # 説明行（Real-ESRGAN General v3）
+    '実写向け・くっきり・速い': 'For live action · Crisp · Fast',
     # 説明行（SwinIR-M）
     '実写の静止画向け・高精細・遅い': 'For live-action stills · Fine detail · Slow',
     # 説明行（AdcSR）
@@ -229,9 +227,9 @@ EN: dict[str, str | None] = {
     '実写向け・高画質・遅い': 'For live action · High quality · Slow',
     # 説明行（Real-ESRGAN Anime Vulkan）
     'アニメ向け・高画質・遅い': 'For anime · High quality · Slow',
-    # 説明行（General Video v3 ノイズ除去強）
+    # 説明行（Real-ESRGAN General v3 ノイズ除去強）
     '実写・アニメ兼用・ノイズ除去強め': 'For live action and anime · Strong denoising',
-    # 説明行（General Video v3 ノイズ除去弱）
+    # 説明行（Real-ESRGAN General v3 ノイズ除去弱）
     '実写向け・ノイズ除去弱め': 'For live action · Light denoising',
     # 一覧の印の前半。{speed}=◎○△✕極遅の印
     '速度{speed}': 'Speed: {speed}',
@@ -733,5 +731,10 @@ EN: dict[str, str | None] = {
     'SwinIR動画出力が生成されませんでした: {out}': 'No SwinIR output video was created: {out}',
     # SwinIR動画の入力解析時
     'SwinIR動画の解像度を取得できません': "Couldn't read the size of the SwinIR video",
+    # --- CLI: 外したモデルの案内
+    # 外したモデルを指定したときのエラー文
+    'Real-ESRGAN（AMD縮小版）は v0.13.0 で外しました。': 'Real-ESRGAN (AMD compact) was removed in v0.13.0.',
+    # 外したモデルを指定したときの直し方
+    '--model general-x4v3（Real-ESRGAN General v3）を使ってください。': 'Use --model general-x4v3 (Real-ESRGAN General v3).',
 }
 

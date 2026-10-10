@@ -46,7 +46,7 @@ DEFAULT_MODEL_FAMILY = ModelFamily.ANIME
 # GPU版/NPU版で実体ファイルだけを差し替える。
 HELPER_MODEL_ANIME = "animevideov3"
 HELPER_MODEL_SPAN = "4xNomosUni"
-HELPER_MODEL_AMD_RRDB = "AMD-RRDB"
+HELPER_MODEL_GENERAL = "general-x4v3"
 HELPER_MODEL_SWINIR = "SwinIR"
 HELPER_MODEL_ADCSR = "AdcSR"
 DEFAULT_HELPER_MODEL = HELPER_MODEL_ANIME
@@ -70,7 +70,7 @@ HELPER_SEAM_TEMPLATES = {
 VULKAN_FALLBACK_MODELS = {
     HELPER_MODEL_ANIME: "realesr-animevideov3",
     HELPER_MODEL_SPAN: "realesrgan-x4plus",
-    HELPER_MODEL_AMD_RRDB: "realesrgan-x4plus",
+    HELPER_MODEL_GENERAL: "realesr-general-x4v3",
     HELPER_MODEL_SWINIR: "realesrgan-x4plus",
     HELPER_MODEL_ADCSR: "realesrgan-x4plus",
 }
@@ -90,13 +90,13 @@ HELPER_MODEL_ALIASES = {
     "swinir": HELPER_MODEL_SWINIR,
     "swinir-m": HELPER_MODEL_SWINIR,
     "adcsr": HELPER_MODEL_ADCSR,
-    HELPER_MODEL_AMD_RRDB: HELPER_MODEL_AMD_RRDB,
-    "amd-rrdb": HELPER_MODEL_AMD_RRDB,
-    "realesrgan-amd": HELPER_MODEL_AMD_RRDB,
-    "realesrgan-amd-rrdb": HELPER_MODEL_AMD_RRDB,
-    ModelFamily.REALESRGAN.value: HELPER_MODEL_AMD_RRDB,
+    HELPER_MODEL_GENERAL: HELPER_MODEL_GENERAL,
+    "realesr-general-x4v3": HELPER_MODEL_GENERAL,
+    "generalv3": HELPER_MODEL_GENERAL,
+    "generalv3dp": HELPER_MODEL_GENERAL,
+    ModelFamily.REALESRGAN.value: HELPER_MODEL_GENERAL,
     # 現行統合版がhelper設定へ誤って保存していた既存既定値。
-    "realesrgan-x4plus": HELPER_MODEL_AMD_RRDB,
+    "realesrgan-x4plus": HELPER_MODEL_GENERAL,
 }
 
 
@@ -113,7 +113,7 @@ def helper_model_family(model: str | ModelFamily | None) -> ModelFamily:
     key = canonical_helper_model(model)
     if key in (HELPER_MODEL_SPAN, HELPER_MODEL_SWINIR, HELPER_MODEL_ADCSR):
         return ModelFamily.PHOTO
-    if key == HELPER_MODEL_AMD_RRDB:
+    if key == HELPER_MODEL_GENERAL:
         return ModelFamily.REALESRGAN
     return ModelFamily.ANIME
 
@@ -125,7 +125,7 @@ def vulkan_fallback_settings(settings: "UpscaleSettings") -> "UpscaleSettings":
 
 
 # 新AIヘルパー用ONNXモデル。キーは具体的なモデルキー、値はタイルの一辺。
-# NPU_NATIVEはアニメ/質感系を512、AMD縮小RRDBを256で実行する。
+# NPU_NATIVEは512タイルで実行する（SwinIRは256、AdcSRは128）。
 HELPER_MODEL_FILES = {
     UpscaleBackend.WINML_GPU: {
         HELPER_MODEL_ANIME: {
@@ -136,8 +136,9 @@ HELPER_MODEL_FILES = {
             256: "purephoto_nchw_256x256_fp32.onnx",
             512: "purephoto_nchw_512x512_fp32.onnx",
         },
-        HELPER_MODEL_AMD_RRDB: {
-            256: "realesrgan_nchw_256x256_fp32.onnx",
+        HELPER_MODEL_GENERAL: {
+            256: "generalv3_nchw_256x256_fp32.onnx",
+            512: "generalv3_nchw_512x512_fp32.onnx",
         },
         HELPER_MODEL_SWINIR: {
             256: "swinir_nchw_256x256_fp32.onnx",
@@ -153,8 +154,8 @@ HELPER_MODEL_FILES = {
         HELPER_MODEL_SPAN: {
             512: "purephoto_nchw_512x512_bf16cast.onnx",
         },
-        HELPER_MODEL_AMD_RRDB: {
-            256: "realesrgan_nchw_256x256_bf16cast.onnx",
+        HELPER_MODEL_GENERAL: {
+            512: "generalv3dp_nchw_512x512_bf16cast.onnx",
         },
         # SwinIRのNPU版はVAIML crash回避のroll書換済みグラフ（研究ノート参照）
         HELPER_MODEL_SWINIR: {
@@ -184,6 +185,12 @@ HELPER_MODEL_NPU_TAIL = {
         512: (
             "animevideov3dp_body_nchw_512x512_bf16cast.onnx",
             "animevideov3dp_body_nchw_512x512.tail.json",
+        ),
+    },
+    HELPER_MODEL_GENERAL: {
+        512: (
+            "generalv3dp_body_nchw_512x512_bf16cast.onnx",
+            "generalv3dp_body_nchw_512x512.tail.json",
         ),
     },
     HELPER_MODEL_SPAN: {

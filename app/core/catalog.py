@@ -10,8 +10,8 @@ from ..i18n import N_
 from .binaries import FILM_MODEL
 from .settings import (
     HELPER_MODEL_ADCSR,
-    HELPER_MODEL_AMD_RRDB,
     HELPER_MODEL_ANIME,
+    HELPER_MODEL_GENERAL,
     HELPER_MODEL_SPAN,
     HELPER_MODEL_SWINIR,
     UpscaleBackend,
@@ -22,10 +22,10 @@ MODEL_LABELS = {
     "realesrgan-x4plus-anime": N_("Real-ESRGAN Anime"),
     "realesr-animevideov3": N_("Anime Video v3"),
     HELPER_MODEL_ANIME: N_("Anime Video v3"),
-    "realesr-general-x4v3": N_("General Video v3（ノイズ除去強）"),
-    "realesr-general-wdn-x4v3": N_("General Video v3（ノイズ除去弱）"),
+    "realesr-general-x4v3": N_("Real-ESRGAN General v3"),
+    "realesr-general-wdn-x4v3": N_("Real-ESRGAN General v3（ノイズ除去弱）"),
     HELPER_MODEL_SPAN: N_("4xNomosUni SPAN"),
-    HELPER_MODEL_AMD_RRDB: N_("Real-ESRGAN（AMD縮小版）"),
+    HELPER_MODEL_GENERAL: N_("Real-ESRGAN General v3"),
     HELPER_MODEL_SWINIR: N_("SwinIR-M"),
     HELPER_MODEL_ADCSR: N_("AdcSR"),
 }
@@ -33,7 +33,7 @@ HELPER_MODEL_OPTIONS = [
     (N_("なし（拡大しない）"), None),
     (MODEL_LABELS[HELPER_MODEL_ANIME], HELPER_MODEL_ANIME),
     (MODEL_LABELS[HELPER_MODEL_SPAN], HELPER_MODEL_SPAN),
-    (MODEL_LABELS[HELPER_MODEL_AMD_RRDB], HELPER_MODEL_AMD_RRDB),
+    (MODEL_LABELS[HELPER_MODEL_GENERAL], HELPER_MODEL_GENERAL),
     (MODEL_LABELS[HELPER_MODEL_SWINIR], HELPER_MODEL_SWINIR),
     (MODEL_LABELS[HELPER_MODEL_ADCSR], HELPER_MODEL_ADCSR),
 ]
@@ -50,7 +50,7 @@ MODEL_HINT = {
     HELPER_MODEL_ANIME: N_("アニメ向け・速い"),
     "realesr-animevideov3": N_("アニメ向け・速い"),
     HELPER_MODEL_SPAN: N_("実写向け・速い"),
-    HELPER_MODEL_AMD_RRDB: N_("実写向け・くっきり・やや遅い"),
+    HELPER_MODEL_GENERAL: N_("実写向け・くっきり・速い"),
     HELPER_MODEL_SWINIR: N_("実写の静止画向け・高精細・遅い"),
     HELPER_MODEL_ADCSR: N_("実写の静止画向け・最高画質・とても遅い"),
     "realesrgan-x4plus": N_("実写向け・高画質・遅い"),
@@ -83,8 +83,8 @@ MODEL_INFO: dict[tuple[UpscaleBackend, str],
         ("◎", "◎", "◎", "△", N_("アニメ")),
     (UpscaleBackend.WINML_GPU, HELPER_MODEL_SPAN):
         ("◎", "◎", "○", "◎", N_("実写")),
-    (UpscaleBackend.WINML_GPU, HELPER_MODEL_AMD_RRDB):
-        ("△", "◎", "○", "◎", None),
+    (UpscaleBackend.WINML_GPU, HELPER_MODEL_GENERAL):
+        ("◎", "○", "○", "◎", None),
     (UpscaleBackend.WINML_GPU, HELPER_MODEL_SWINIR):
         ("✕", "◎", "○", "◎", N_("静止画")),
     (UpscaleBackend.WINML_GPU, HELPER_MODEL_ADCSR):
@@ -95,8 +95,8 @@ MODEL_INFO: dict[tuple[UpscaleBackend, str],
         ("○", "◎", "◎", "△", N_("アニメ")),
     (UpscaleBackend.NPU_NATIVE, HELPER_MODEL_SPAN):
         ("◎", "◎", "○", "◎", N_("実写")),
-    (UpscaleBackend.NPU_NATIVE, HELPER_MODEL_AMD_RRDB):
-        ("△", "◎", "○", "◎", None),
+    (UpscaleBackend.NPU_NATIVE, HELPER_MODEL_GENERAL):
+        ("○", "○", "○", "◎", None),
     (UpscaleBackend.NPU_NATIVE, HELPER_MODEL_SWINIR):
         ("✕", "◎", "○", "◎", N_("静止画")),
     (UpscaleBackend.SWINIR_CUDA, HELPER_MODEL_SWINIR):

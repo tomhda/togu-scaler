@@ -45,4 +45,3 @@ This folder also contains the third-party software and models listed below, each
    - The author and license of each model are listed in models/ai/NOTICE-models-gpu-fp32.txt (in Japanese)
      and in the License section of README.en.md.
    - 4xNomosUni_span_multijpg is under CC BY 4.0 (Philip Hofmann / Phips). Keep the attribution.
-   - Real-ESRGAN (AMD compact) is under the Research-only RAIL-MS license and may be used for research only.

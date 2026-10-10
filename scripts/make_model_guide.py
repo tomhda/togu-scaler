@@ -23,8 +23,8 @@ sys.path.insert(0, str(ROOT))
 from app.core import upscaler  # noqa: E402
 from app.core.settings import (  # noqa: E402
     HELPER_MODEL_ADCSR,
-    HELPER_MODEL_AMD_RRDB,
     HELPER_MODEL_ANIME,
+    HELPER_MODEL_GENERAL,
     HELPER_MODEL_SPAN,
     HELPER_MODEL_SWINIR,
     UpscaleBackend,
@@ -35,7 +35,7 @@ from app.core.settings import (  # noqa: E402
 MODELS = [
     ("Anime Video v3", HELPER_MODEL_ANIME),
     ("4xNomosUni SPAN", HELPER_MODEL_SPAN),
-    ("Real-ESRGAN（AMD縮小版）", HELPER_MODEL_AMD_RRDB),
+    ("Real-ESRGAN General v3", HELPER_MODEL_GENERAL),
     ("SwinIR-M", HELPER_MODEL_SWINIR),
     ("AdcSR", HELPER_MODEL_ADCSR),
 ]
@@ -43,7 +43,6 @@ ORIGINAL_LABEL = "オリジナル（Lanczos で 4 倍・AI なし）"
 # 英語版の README 用のラベル（アプリの英語表示と同じ表記）
 EN_LABELS = {
     ORIGINAL_LABEL: "Original (enlarged 4× with Lanczos, no AI)",
-    "Real-ESRGAN（AMD縮小版）": "Real-ESRGAN (AMD compact)",
 }
 
 # 素材ごとの切り出し範囲（元画像の座標: x, y, w, h）。4 倍後に 752x560 になる。

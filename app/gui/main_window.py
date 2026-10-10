@@ -12,6 +12,7 @@
 from __future__ import annotations
 
 import subprocess
+import sys
 import threading
 from dataclasses import replace
 from pathlib import Path
@@ -40,7 +41,6 @@ from app.core.jobs import Job, JobKind, JobStatus
 from app.core.settings import (
     DEFAULT_MODEL,
     DEFAULT_HELPER_MODEL,
-    HELPER_MODEL_AMD_RRDB,
     HELPER_MODEL_ANIME,
     HELPER_MODEL_SPAN,
     HELPER_MODEL_SWINIR,
@@ -2137,8 +2137,27 @@ class MainWindow(QWidget):
         super().closeEvent(event)
 
 
+def _set_taskbar_identity() -> None:
+    """ソースから動かすとき、タスクバーに Python のアイコンで出ないようにする。
+
+    Windows は実行ファイル（python.exe）ごとにタスクバーのボタンをまとめ、その
+    アイコンを出す。アプリ固有の ID を付けると、ウィンドウのアイコンが使われる。
+    配布版は exe 自身がアイコンを持つので、何もしない。
+    """
+    if sys.platform != "win32" or getattr(sys, "frozen", False):
+        return
+    try:
+        import ctypes
+
+        ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(
+            "tomhda.togu-scaler")
+    except Exception:
+        pass
+
+
 def run(argv: list[str]) -> int:
     """GUI エントリポイント。app/main.py から呼ばれる。"""
+    _set_taskbar_identity()
     app = QApplication.instance() or QApplication(argv)
     app.setWindowIcon(QIcon(str(asset_path("app.ico"))))
     apply_theme(app)

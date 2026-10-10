@@ -31,6 +31,7 @@ PROG = (
 CODE_INPUT_NOT_FOUND = "input_not_found"
 CODE_UNSUPPORTED_INPUT = "unsupported_input"
 CODE_MODEL_UNKNOWN = "model_unknown"
+CODE_MODEL_REMOVED = "model_removed"
 CODE_INTERPOLATION_UNKNOWN = "interpolation_unknown"
 CODE_MODEL_NOT_FOR_VIDEO = "model_not_for_video"
 CODE_SCALE_NOT_SUPPORTED = "scale_not_supported"
@@ -44,6 +45,10 @@ CODE_NPU_UNAVAILABLE = "npu_unavailable"
 CODE_OUTPUT_EXISTS = "output_exists"
 CODE_INVALID_ARGUMENT = "invalid_argument"
 CODE_PROCESS_FAILED = "process_failed"
+
+# Removed models (matched case-insensitively): Real-ESRGAN (AMD compact),
+# removed in v0.13.0. Kept out of HELPER_MODEL_ALIASES on purpose.
+REMOVED_MODEL_KEYS = frozenset({"amd-rrdb", "realesrgan-amd", "realesrgan-amd-rrdb"})
 
 # CLI backend names and the fixed choices.
 BACKEND_NAMES = ("auto", "gpu", "npu", "vulkan")
@@ -417,8 +422,8 @@ def _upscale_keys(backend: str) -> list[str]:
     from app.core import binaries
     from app.core.settings import (
         HELPER_MODEL_ADCSR,
-        HELPER_MODEL_AMD_RRDB,
         HELPER_MODEL_ANIME,
+        HELPER_MODEL_GENERAL,
         HELPER_MODEL_SPAN,
         HELPER_MODEL_SWINIR,
     )
@@ -427,7 +432,7 @@ def _upscale_keys(backend: str) -> list[str]:
         return [
             HELPER_MODEL_ANIME,
             HELPER_MODEL_SPAN,
-            HELPER_MODEL_AMD_RRDB,
+            HELPER_MODEL_GENERAL,
             HELPER_MODEL_SWINIR,
             HELPER_MODEL_ADCSR,
         ]
@@ -445,8 +450,16 @@ def _normalize_model_key(backend: str, key: str) -> str:
 
 def _check_model_key(backend: str, key: str | None) -> str | None:
     """Validate --model. Returns the concrete key (None stays None)."""
+    from app.i18n import t
+
     if key is None or key == "none":
         return None
+    if str(key).lower() in REMOVED_MODEL_KEYS:
+        raise UsageError(
+            CODE_MODEL_REMOVED,
+            t("Real-ESRGAN（AMD縮小版）は v0.13.0 で外しました。"),
+            t("--model general-x4v3（Real-ESRGAN General v3）を使ってください。"),
+        )
     valid = set(_upscale_keys(backend))
     concrete = _normalize_model_key(backend, key)
     if key in valid:

@@ -24,7 +24,7 @@ from app.core import helper_backend, npu_prepare
 from app.core.jobs import Cancelled
 from app.core.settings import (
     HELPER_MODEL_ADCSR,
-    HELPER_MODEL_AMD_RRDB,
+    HELPER_MODEL_GENERAL,
     HELPER_MODEL_ANIME,
     HELPER_MODEL_SPAN,
     HELPER_MODEL_SWINIR,
@@ -41,7 +41,7 @@ SAMPLE_IMAGE = REPO_ROOT / "vendor" / "realesrgan" / "input.jpg"
 NATIVE_FILES = HELPER_MODEL_FILES[UpscaleBackend.NPU_NATIVE]
 ANIME_FULL = NATIVE_FILES[HELPER_MODEL_ANIME][512]
 SPAN_FULL = NATIVE_FILES[HELPER_MODEL_SPAN][512]
-RRDB_FULL = NATIVE_FILES[HELPER_MODEL_AMD_RRDB][256]
+GENERAL_FULL = NATIVE_FILES[HELPER_MODEL_GENERAL][512]
 SWINIR_FULL = NATIVE_FILES[HELPER_MODEL_SWINIR][256]
 ADCSR_FRONT = NATIVE_FILES[HELPER_MODEL_ADCSR][128]
 ADCSR_BACK = HELPER_MODEL_NPU_BACK[HELPER_MODEL_ADCSR]
@@ -51,7 +51,7 @@ SPAN_BODY, SPAN_TAIL_JSON = HELPER_MODEL_NPU_TAIL[HELPER_MODEL_SPAN][512]
 LABELS = {
     HELPER_MODEL_ANIME: "Anime Video v3",
     HELPER_MODEL_SPAN: "4xNomosUni SPAN",
-    HELPER_MODEL_AMD_RRDB: "Real-ESRGAN（AMD縮小版）",
+    HELPER_MODEL_GENERAL: "Real-ESRGAN General v3",
     HELPER_MODEL_SWINIR: "SwinIR-M",
     HELPER_MODEL_ADCSR: "AdcSR",
 }
@@ -219,17 +219,17 @@ def test_models_converted_matches_session_without_tail(
     models, cache = npu_env
     _touch(models / ANIME_FULL)
     _make_cache(cache, _stem(ANIME_FULL))
-    _touch(models / RRDB_FULL)  # キャッシュなし
+    _touch(models / GENERAL_FULL)  # キャッシュなし
     _install_fake_npu(monkeypatch, tmp_path)
 
     listed = {model.key: model for model in npu_prepare.npu_models()}
     assert listed[HELPER_MODEL_ANIME].converted is True
     assert listed[HELPER_MODEL_ANIME].has_files is True
-    assert listed[HELPER_MODEL_AMD_RRDB].converted is False
+    assert listed[HELPER_MODEL_GENERAL].converted is False
     assert HELPER_MODEL_ADCSR not in listed  # 追加ファイルなしは出さない
 
     assert _open_npu(HELPER_MODEL_ANIME).cache_hit is True
-    assert _open_npu(HELPER_MODEL_AMD_RRDB).cache_hit is False
+    assert _open_npu(HELPER_MODEL_GENERAL).cache_hit is False
 
 
 def test_models_converted_follows_tail_body_cache(
@@ -260,7 +260,7 @@ def test_models_converted_matches_two_stage_cache(
     monkeypatch, tmp_path, npu_env
 ) -> None:
     models, cache = npu_env
-    _touch(models / RRDB_FULL)
+    _touch(models / GENERAL_FULL)
     _make_two_stage(models, cache)
     _install_fake_npu(monkeypatch, tmp_path)
 
@@ -343,11 +343,11 @@ def test_convert_cancel_propagates(monkeypatch) -> None:
 
 def test_open_session_passes_creationflags(monkeypatch, tmp_path, npu_env) -> None:
     models, _cache = npu_env
-    _touch(models / RRDB_FULL)
+    _touch(models / GENERAL_FULL)
     _install_fake_npu(monkeypatch, tmp_path)
 
     settings = UpscaleSettings(
-        backend=UpscaleBackend.NPU_NATIVE, model=HELPER_MODEL_AMD_RRDB)
+        backend=UpscaleBackend.NPU_NATIVE, model=HELPER_MODEL_GENERAL)
     helper_backend.open_session(settings, 854, 480, creationflags=1234)
     assert _FakeServeClient.last_creationflags == 1234
     helper_backend.open_session(settings, 854, 480)
