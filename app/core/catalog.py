@@ -73,8 +73,6 @@ MODEL_INFO: dict[tuple[UpscaleBackend, str],
         ("✕", "◎", "○", "◎", None),
     (UpscaleBackend.VULKAN, "realesrgan-x4plus-anime"):
         ("✕", "◎", "◎", "○", None),
-    (UpscaleBackend.NPU, "realesrgan-x4plus"):
-        ("◎", "◎", "○", "◎", N_("実写")),
     (UpscaleBackend.NPU, "realesrgan-x4plus-anime"):
         ("○", "◎", "◎", "○", None),
     (UpscaleBackend.NPU, "realesr-animevideov3"):

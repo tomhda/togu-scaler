@@ -108,7 +108,7 @@ if ($WithHelper) {
     foreach ($file in $onnxFiles) {
         Copy-Item -LiteralPath $file.FullName -Destination $modelsOut -Force
     }
-    # モデルの帰属とライセンス（CC-BY の表示、研究用途限定の条件などを含む）
+    # モデルの帰属とライセンス（CC-BY の表示などを含む）
     $modelDocs = @(
         "NOTICE-models-gpu-fp32.txt", "LICENSE-BSD-3-Real-ESRGAN.txt", "LICENSE-CC-BY-4.0.txt",
         "LICENSE-Apache-2.0-SwinIR.txt"

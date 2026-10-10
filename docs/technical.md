@@ -234,7 +234,6 @@ README の「画質の比較」の画像は `scripts/make_model_guide.py` で作
 ## ライセンスと、配布物への同梱
 
 - 本リポジトリのコード: [MIT](../LICENSE)
-- `vendor/amd-npu/` の Real-ESRGAN NPU モデル: AMD 公式モデル由来のため [Research-only RAIL-MS](../vendor/amd-npu/LICENSE)（研究用途限定）
 - Anime Video v3 / Real-ESRGAN Anime の NPU モデル: BSD-3-Clause の [xinntao/Real-ESRGAN](https://github.com/xinntao/Real-ESRGAN) 重みから変換
 - 4xNomosUni_span_multijpg: CC-BY-4.0, by Philip Hofmann/Phips（取得元と SHA-256 は [docs/span-bench-results.md](span-bench-results.md)）
 - 003_realSR_BSRGAN_DFO_s64w8_SwinIR-M_x4_GAN: Apache-2.0, by Jingyun Liang（SwinIR）。CUDA 経路の実装由来は `tools/swinir/NOTICE.md`
