@@ -191,6 +191,8 @@ The command itself downloads nothing; installing a kit is a decision for the per
 
 ## agent-friendly check record
 
+The criteria for the agent-friendly mark are in [tomhda/agent-friendly-mark](https://github.com/tomhda/agent-friendly-mark).
+
 2026-10-10 — Claude Opus 5.5 and Codex gpt-6.1-sol (high), each in a new conversation with only the
 portable folder. Tasks: enlarge a still 4x, double a clip's frame rate, and enlarge a clip with
 AdcSR (a planted failure: stills only). Both finished all three without help, without guessing a
