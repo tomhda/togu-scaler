@@ -48,6 +48,13 @@ togu-scaler-cli models --json
 - Starting points: `animevideov3` for anime and CG, `4xNomosUni` or `general-x4v3` for live action. All three are fast.
   `SwinIR` and `AdcSR` take about a minute or more per image, so use them for single stills.
   `AdcSR` can't process videos (`"video": false`).
+- `Remaster` removes compression noise at the source resolution (images, folders,
+  SDR videos). Select `--model Remaster`; scale defaults to 1 for this model.
+  It runs on DirectML even with `--backend npu`, and never falls back to an upscaler.
+  `--scale 2`/`4` is rejected. Quick check and `--rect` work as usual.
+  Output: `photo_Remaster_denoised.png` / `clip_Remaster_denoised.mp4`.
+  Source setup: install `requirements-remaster.txt`, then run
+  `python scripts/get_remaster.py`. See [docs/remaster.md](docs/remaster.md).
 
 ### Upscale an image
 

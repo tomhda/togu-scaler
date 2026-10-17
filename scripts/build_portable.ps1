@@ -94,6 +94,9 @@ if ($WithHelper) {
     # GPU 用だけを同梱する。NPU 専用（bf16cast / tail-cut body / AdcSR）は
     # 別配布の NPU キットに入れるため除く。
     $modelsSource = Join-Path $repo "models\ai"
+    if (-not (Test-Path -LiteralPath (Join-Path $modelsSource "remaster_nchw_512x512_fp32.onnx"))) {
+        throw "Remaster model is missing (run scripts/get_remaster.py first)"
+    }
     $modelsOut = Join-Path $app "models\ai"
     New-Item -ItemType Directory -Path $modelsOut -Force | Out-Null
     $onnxFiles = Get-ChildItem -LiteralPath $modelsSource -Filter "*.onnx" -File `
@@ -111,7 +114,7 @@ if ($WithHelper) {
     # モデルの帰属とライセンス（CC-BY の表示などを含む）
     $modelDocs = @(
         "NOTICE-models-gpu-fp32.txt", "LICENSE-BSD-3-Real-ESRGAN.txt", "LICENSE-CC-BY-4.0.txt",
-        "LICENSE-Apache-2.0-SwinIR.txt"
+        "LICENSE-Apache-2.0-SwinIR.txt", "LICENSE-MIT-Remaster.txt", "NOTICE-Remaster.txt"
     )
     foreach ($name in $modelDocs) {
         $doc = Join-Path $modelsSource $name

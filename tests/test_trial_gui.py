@@ -65,7 +65,7 @@ def _install_fake_upscale(monkeypatch, calls: list, block: threading.Event | Non
             if cancel is not None and cancel.is_set():
                 raise Cancelled()
         with Image.open(in_path) as im:
-            im.resize((im.width * 4, im.height * 4), Image.NEAREST).save(out_path, "PNG")
+            im.resize((im.width * settings.scale, im.height * settings.scale), Image.NEAREST).save(out_path, "PNG")
         if progress is not None:
             progress(1.0, "fake")
 
@@ -83,6 +83,46 @@ def _make_window(app, source: Path):
     assert _wait_until(lambda: win.preview._source_image is not None), "元画像の読み込み待ちが切れた"
     app.processEvents()
     return win
+
+
+def test_remaster_quick_comparison_and_model_switch(app, monkeypatch, tmp_path):
+    from app.core.settings import HELPER_MODEL_REMASTER
+
+    src = tmp_path / "odd.png"
+    Image.new("RGB", (73, 51), "gray").save(src)
+    calls = []
+    _install_fake_upscale(monkeypatch, calls)
+    win = _make_window(app, src)
+    try:
+        win.image_model_combo.setCurrentIndex(win.image_model_combo.findData(HELPER_MODEL_REMASTER))
+        assert win.build_settings().scale == 1
+        assert win._scale_btns[1].isChecked()
+        assert win._scale_btns[1].isEnabled()
+        assert not win._scale_btns[4].isEnabled()
+        # Returning an individual selection to the bulk value removes the override.
+        win.model_combo.setCurrentIndex(win.model_combo.findData("animevideov3"))
+        win.model_combo.setCurrentIndex(win.model_combo.findData(HELPER_MODEL_REMASTER))
+        assert win._selected_job().id not in win._overrides
+        win.preview.trial_btn.click()
+        assert _wait_until(lambda: not win.preview.is_trial_running())
+        assert len(calls) == 1
+        assert calls[0]["settings"].scale == 1
+        with Image.open(calls[0]["out"]) as result:
+            assert result.size == (73, 51)
+        assert win.preview.view.has_two()
+        assert "Remaster" in win.preview.view.right_label()
+        win.image_model_combo.setCurrentIndex(win.image_model_combo.findData("animevideov3"))
+        win.preview.trial_btn.click()
+        assert _wait_until(lambda: not win.preview.is_trial_running())
+        assert calls[-1]["settings"].scale == 4
+        win.image_model_combo.setCurrentIndex(win.image_model_combo.findData(HELPER_MODEL_REMASTER))
+        win.preview.trial_btn.click()
+        app.processEvents()
+        assert len(calls) == 2  # Native-size result has its own cached comparison.
+        assert "Remaster" in win.preview.view.right_label()
+    finally:
+        win.close()
+        app.processEvents()
 
 
 def test_wording_buttons_and_status(app, monkeypatch) -> None:
@@ -256,7 +296,7 @@ def test_main_running_model_none_and_folder_status(app, monkeypatch, tmp_path) -
         win.model_combo.setCurrentIndex(none_index)
         app.processEvents()
         win.preview.refresh()
-        assert win.preview.status_label.text() == "拡大モデルを選ぶとクイック確認できます"
+        assert win.preview.status_label.text() == "処理モデルを選ぶとクイック確認できます"
 
         target = tmp_path / "folderjob"
         target.mkdir()
@@ -590,8 +630,8 @@ def test_quick_help_text(app) -> None:
         assert win.preview.quick_help.objectName() == "helpIcon"
         assert win.preview.quick_help.text() == "?"
         assert win.preview.quick_help.help_text == (
-            "仕上がり確認のため、1 枚だけ拡大処理を行い、元の画像と比較できます。\n"
-            "動画は、画像下のスライダーで拡大するフレームを選択できます。\n"
+            "仕上がり確認のため、1 枚だけ処理を行い、元の画像と比較できます。\n"
+            "動画は、画像下のスライダーで処理するフレームを選択できます。\n"
             "「範囲を選択してクイック確認」を使うと、その 1 枚のさらに一部分だけに処理を限定できます。"
         )
     finally:

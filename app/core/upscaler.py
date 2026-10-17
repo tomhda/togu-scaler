@@ -129,6 +129,11 @@ def upscale_image(in_path: str, out_path: str, settings: UpscaleSettings,
     """
     progress = progress or _noop
 
+    if settings.denoise_enabled and settings.backend not in {
+        UpscaleBackend.WINML_GPU, UpscaleBackend.NPU_NATIVE,
+    }:
+        raise ValueError(t("RemasterはGPU（DirectML）で実行してください。"))
+
     # 旧API互換。新GUIのNPU選択は下のNPU_NATIVEへ寄せる。
     if settings.backend == UpscaleBackend.NPU:
         from . import npu_backend
@@ -146,7 +151,7 @@ def upscale_image(in_path: str, out_path: str, settings: UpscaleSettings,
             helper_backend.upscale_image(in_path, out_path, settings, progress, cancel)
             return
         except helper_backend.HelperBackendUnavailable as exc:
-            if settings.backend == UpscaleBackend.SWINIR_CUDA:
+            if settings.denoise_enabled or settings.backend == UpscaleBackend.SWINIR_CUDA:
                 raise
             # DirectML/NPUのモデル不在・helper起動失敗時は、既存のVulkan資産へ退避する。
             settings = vulkan_fallback_settings(settings)
@@ -241,6 +246,10 @@ def upscale_folder(in_dir: str, out_dir: str, settings: UpscaleSettings,
     （別スレッドでポーリング）。out_dir は事前に作成しておくこと。
     """
     progress = progress or _noop
+    if settings.denoise_enabled and settings.backend not in {
+        UpscaleBackend.WINML_GPU, UpscaleBackend.NPU_NATIVE,
+    }:
+        raise ValueError(t("RemasterはGPU（DirectML）で実行してください。"))
 
     # 旧API互換。新GUIのNPU選択は下のNPU_NATIVEへ寄せる。
     if settings.backend == UpscaleBackend.NPU:
@@ -259,7 +268,7 @@ def upscale_folder(in_dir: str, out_dir: str, settings: UpscaleSettings,
             helper_backend.upscale_folder(in_dir, out_dir, settings, progress, cancel)
             return
         except helper_backend.HelperBackendUnavailable as exc:
-            if settings.backend == UpscaleBackend.SWINIR_CUDA:
+            if settings.denoise_enabled or settings.backend == UpscaleBackend.SWINIR_CUDA:
                 raise
             settings = vulkan_fallback_settings(settings)
             progress(

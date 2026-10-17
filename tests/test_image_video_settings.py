@@ -382,7 +382,7 @@ def test_start_validation_messages(app, monkeypatch, tmp_path) -> None:
         win.global_interpolation_combo.setCurrentIndex(0)
         app.processEvents()
         win._on_start()
-        assert win.status_label.text() == "画像の拡大モデルを選んでください。"
+        assert win.status_label.text() == "画像の処理モデルを選んでください。"
         assert called == []
         assert win._running is False
 
@@ -391,7 +391,7 @@ def test_start_validation_messages(app, monkeypatch, tmp_path) -> None:
         app.processEvents()
         win._on_start()
         assert win.status_label.text() == (
-            "動画の拡大モデルかフレーム補間モデルを選んでください。"
+            "動画の処理モデルかフレーム補間モデルを選んでください。"
         )
         assert called == []
 
@@ -406,7 +406,7 @@ def test_start_validation_messages(app, monkeypatch, tmp_path) -> None:
         assert video_job.id in win._overrides
         win._on_start()
         assert win.status_label.text() == (
-            f"{video_job.name}の拡大モデルを選んでください。"
+            f"{video_job.name}の処理モデルを選んでください。"
         )
         assert called == []
         assert win._running is False

@@ -115,13 +115,13 @@ def test_models_json_shape(monkeypatch, capsys):
     assert code == 0
     payload = _json_out(out)
     assert payload["backend"] == "gpu"
-    assert len(payload["upscale"]) == 5
+    assert len(payload["upscale"]) == 6
     for entry in payload["upscale"]:
         assert isinstance(entry["key"], str)
         assert isinstance(entry["name"], str) and entry["name"]
         assert isinstance(entry["image"], bool)
         assert isinstance(entry["video"], bool)
-        assert entry["scales"] == [4]
+        assert entry["scales"] == ([1] if entry["key"] == "Remaster" else [4])
         assert isinstance(entry["available"], bool)
         assert isinstance(entry["note"], str) and entry["note"]
         assert "converted" not in entry
@@ -144,7 +144,40 @@ def test_models_npu_has_converted(monkeypatch, capsys):
     payload = _json_out(out)
     assert payload["backend"] == "npu"
     for entry in payload["upscale"]:
-        assert entry["converted"] is False
+        if entry["key"] == "Remaster":
+            assert "converted" not in entry  # Always runs on DirectML.
+        else:
+            assert entry["converted"] is False
+
+
+def test_remaster_defaults_to_native_size(monkeypatch, capsys, tmp_path):
+    monkeypatch.setattr(cli, "_model_available", lambda *a: True)
+    _fail_copy_upscale(monkeypatch)
+    src = _make_png(tmp_path / "photo.png", (73, 51))
+    code, raw, _ = _run(["run", str(src), "--model", "remaster", "--json"], capsys)
+    result = _json_out(raw)["results"][0]
+    assert code == 0
+    assert result["settings"]["scale"] == 1
+    assert (result["width"], result["height"]) == (73, 51)
+    assert result["output"].endswith("photo_Remaster_denoised.png")
+    assert "fallback" not in result
+    out = tmp_path / "check.png"
+    code, raw, _ = _run(["quick-check", str(src), "--model", "Remaster",
+                          "--out", str(out), "--rect", "3,4,27,19", "--json"], capsys)
+    result = _json_out(raw)
+    assert code == 0
+    assert (result["width"], result["height"], result["settings"]["scale"]) == (27, 19, 1)
+
+
+@pytest.mark.parametrize("command", ["run", "quick-check"])
+def test_remaster_rejects_four_times_scale(capsys, tmp_path, command):
+    src = _make_png(tmp_path / "photo.png")
+    args = [command, str(src), "--model", "Remaster", "--scale", "4", "--json"]
+    if command == "quick-check":
+        args += ["--out", str(tmp_path / "check.png")]
+    code, raw, _ = _run(args, capsys)
+    assert code == 2
+    assert _json_out(raw)["error"]["code"] == "scale_not_supported"
 
 
 def test_models_keys_work_in_run(monkeypatch, capsys, tmp_path):

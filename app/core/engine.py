@@ -78,6 +78,10 @@ def process_job(job: Job, settings: UpscaleSettings,
                 progress: ProgressCb | None = None, cancel=None) -> Path:
     """ジョブを処理して出力パスを返す。失敗時は例外、キャンセル時は Cancelled。"""
     progress = progress or (lambda f, m: None)
+    if settings.denoise_enabled and settings.backend not in {
+        UpscaleBackend.WINML_GPU, UpscaleBackend.NPU_NATIVE,
+    }:
+        raise ValueError(t("RemasterはGPU（DirectML）で実行してください。"))
     if job.kind == JobKind.IMAGE:
         return _process_image(job, settings, progress, cancel)
     if job.kind == JobKind.FOLDER:
@@ -92,7 +96,7 @@ def _process_image(job, settings, progress, cancel) -> Path:
         raise ValueError(t("画像にはアップスケーラーモデルを選択してください。"))
     out = _image_output(job, settings)
     tmp = _part_path(out)
-    progress(0.0, t("アップスケール中…"))
+    progress(0.0, t("ノイズ除去中…") if settings.denoise_enabled else t("アップスケール中…"))
     try:
         upscaler.upscale_image(str(job.input_path), str(tmp), settings,
                                progress=progress, cancel=cancel)
@@ -110,7 +114,7 @@ def _process_folder(job, settings, progress, cancel) -> Path:
     base = _output_base(job, settings)
     out_dir = base / f"{job.input_path.name}{settings.output_suffix()}"
     out_dir.mkdir(parents=True, exist_ok=True)
-    progress(0.0, t("フォルダを一括アップスケール中…"))
+    progress(0.0, t("ノイズ除去中…") if settings.denoise_enabled else t("フォルダを一括アップスケール中…"))
     upscaler.upscale_folder(str(job.input_path), str(out_dir), settings,
                             progress=progress, cancel=cancel)
     progress(1.0, t("完了"))
@@ -196,6 +200,8 @@ def _process_video(job, settings, progress, cancel) -> Path:
                 )
             except helper_backend.HelperBackendUnavailable as exc:
                 out_tmp.unlink(missing_ok=True)
+                if settings.denoise_enabled:
+                    raise
                 active_settings = vulkan_fallback_settings(settings)
                 progress(
                     0.02,

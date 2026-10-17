@@ -415,7 +415,7 @@ QPushButton#scaleBtn {{
     background-color: {p.input};
     border: 1px solid {p.border};
     border-radius: 6px;
-    min-width: 76px;
+    min-width: 48px;
     min-height: 42px;
     padding: 0 16px;
     font-size: 17px;

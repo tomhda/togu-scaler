@@ -44,3 +44,5 @@ TOGU SCALER 本体は MIT License（LICENSE.txt）。
 9. 超解像モデル（models/ai/）— GPU 版を同梱した場合のみ
    - モデルごとの帰属とライセンスは models/ai/NOTICE-models-gpu-fp32.txt を参照。
    - 4xNomosUni_span_multijpg は CC-BY-4.0（Philip Hofmann/Phips）。表示を保持すること。
+   - Remaster DRUNet Student（等倍ノイズ除去）: MIT、Copyright (c) 2026 Sean Tempesta。
+     models/ai/NOTICE-Remaster.txt と LICENSE-MIT-Remaster.txt を参照。

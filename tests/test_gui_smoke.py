@@ -231,6 +231,7 @@ def test_helper_model_none_is_available_and_saved_as_upscale_off(app):
             HELPER_MODEL_GENERAL,
             HELPER_MODEL_SWINIR,
             HELPER_MODEL_ADCSR,
+            "Remaster",
         ]
 
         win.image_model_combo.setCurrentIndex(0)
@@ -356,10 +357,12 @@ def test_backend_combo_maps_new_helpers_and_limits_scale_to_4x(app, monkeypatch,
             None, HELPER_MODEL_ANIME, HELPER_MODEL_SPAN, HELPER_MODEL_GENERAL,
             HELPER_MODEL_SWINIR,
             HELPER_MODEL_ADCSR,
+            "Remaster",
         ]
         assert [win.video_model_combo.itemData(i) for i in range(win.video_model_combo.count())] == [
             None, HELPER_MODEL_ANIME, HELPER_MODEL_SPAN, HELPER_MODEL_GENERAL,
             HELPER_MODEL_SWINIR,
+            "Remaster",
         ]
         assert win.image_model_combo.itemText(1).startswith("Anime Video v3")
         assert win.image_model_combo.itemText(2).startswith("4xNomosUni SPAN")
@@ -379,7 +382,7 @@ def test_backend_combo_maps_new_helpers_and_limits_scale_to_4x(app, monkeypatch,
         win.backend_combo.setCurrentIndex(auto_idx)
         app.processEvents()
         assert win.image_model_combo.isEnabled() is True
-        assert win.image_model_combo.count() == 6
+        assert win.image_model_combo.count() == 7
         assert win.build_settings().backend == UpscaleBackend.WINML_GPU
 
         vulkan = win.backend_combo.findData(UpscaleBackend.VULKAN.value)
@@ -580,11 +583,13 @@ def test_model_picker_shows_speed_quality_info(app, tmp_path):
             None, HELPER_MODEL_ANIME, HELPER_MODEL_SPAN, HELPER_MODEL_GENERAL,
             HELPER_MODEL_SWINIR,
             HELPER_MODEL_ADCSR,
+            "Remaster",
         ]
         assert [win.model_combo.itemData(i) for i in range(win.model_combo.count())] == [
             None, HELPER_MODEL_ANIME, HELPER_MODEL_SPAN, HELPER_MODEL_GENERAL,
             HELPER_MODEL_SWINIR,
             HELPER_MODEL_ADCSR,
+            "Remaster",
         ]
         assert win.image_model_combo.itemText(1).startswith("Anime Video v3")
         assert "速度◎" in win.image_model_combo.itemText(1)
@@ -657,6 +662,7 @@ def test_model_picker_lists_general_v3_without_amd(app, tmp_path):
             None, HELPER_MODEL_ANIME, HELPER_MODEL_SPAN, HELPER_MODEL_GENERAL,
             HELPER_MODEL_SWINIR,
             HELPER_MODEL_ADCSR,
+            "Remaster",
         ]
         assert win.image_model_combo.itemText(3).startswith("Real-ESRGAN General v3")
         texts = "\n".join(

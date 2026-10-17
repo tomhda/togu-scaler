@@ -49,6 +49,7 @@ HELPER_MODEL_SPAN = "4xNomosUni"
 HELPER_MODEL_GENERAL = "general-x4v3"
 HELPER_MODEL_SWINIR = "SwinIR"
 HELPER_MODEL_ADCSR = "AdcSR"
+HELPER_MODEL_REMASTER = "Remaster"
 DEFAULT_HELPER_MODEL = HELPER_MODEL_ANIME
 
 # helper serve 起動時に --overlap へ渡す片側マージン（入力 px）の既定値。
@@ -57,6 +58,7 @@ HELPER_DEFAULT_OVERLAP = 16
 # 継ぎ目の低周波の暗部を減らす（docs/adcsr-tile-diagnosis.md 参照）。
 HELPER_MODEL_OVERLAP = {
     HELPER_MODEL_ADCSR: 32,
+    HELPER_MODEL_REMASTER: 64,
 }
 
 # AdcSR の格子補正（平坦領域限定・固定テンプレート減算）のファイル名（overlap 別）。
@@ -90,6 +92,8 @@ HELPER_MODEL_ALIASES = {
     "swinir": HELPER_MODEL_SWINIR,
     "swinir-m": HELPER_MODEL_SWINIR,
     "adcsr": HELPER_MODEL_ADCSR,
+    "remaster": HELPER_MODEL_REMASTER,
+    HELPER_MODEL_REMASTER: HELPER_MODEL_REMASTER,
     HELPER_MODEL_GENERAL: HELPER_MODEL_GENERAL,
     "realesr-general-x4v3": HELPER_MODEL_GENERAL,
     "generalv3": HELPER_MODEL_GENERAL,
@@ -148,6 +152,9 @@ HELPER_MODEL_FILES = {
         },
         HELPER_MODEL_ADCSR: {
             128: "adcsr_nchw_128x128_fp32.onnx",
+        },
+        HELPER_MODEL_REMASTER: {
+            512: "remaster_nchw_512x512_fp32.onnx",
         },
     },
     UpscaleBackend.NPU_NATIVE: {
@@ -240,7 +247,7 @@ class UpscaleSettings:
 
     # --- 基本 ---
     backend: UpscaleBackend = UpscaleBackend.WINML_GPU # 自動（GPU優先）を正規化した値
-    scale: int = 4                                   # 倍率: 2 / 3 / 4（新ヘルパーは4固定）
+    scale: int = 4                                   # Remaster は等倍、超解像は既定4倍
     # None = アップスケールしない（動画で補間だけ行う場合に使う）
     model: str | None = DEFAULT_MODEL                # Vulkan/helper共通のモデルキー
     model_family: ModelFamily = DEFAULT_MODEL_FAMILY # 旧helper設定の読み込み互換値
@@ -281,10 +288,21 @@ class UpscaleSettings:
     # 既存の位置引数互換を保つため、動画・補間設定の末尾に置く。
     max_video_dim: tuple[int, int] | None = None
 
+    def __post_init__(self) -> None:
+        if self.denoise_enabled:
+            self.scale = 1
+
+    @property
+    def denoise_enabled(self) -> bool:
+        """Remaster is a standalone native-resolution restoration model."""
+        return canonical_helper_model(self.model) == HELPER_MODEL_REMASTER
+
     def output_suffix(self) -> str:
         """選択した処理を表す出力接尾辞を返す。"""
         parts: list[str] = []
-        if self.model is not None:
+        if self.denoise_enabled:
+            parts.append("Remaster_denoised")
+        elif self.model is not None:
             parts.append(f"x{self.scale}")
         if self.interpolation_model is not None:
             # binaries.FILM_MODEL（"film-style"）は表示名にする。
@@ -301,6 +319,7 @@ class UpscaleSettings:
 
     @property
     def upscale_enabled(self) -> bool:
+        # Legacy name: includes native-resolution restoration via Remaster.
         return self.model is not None
 
     @property

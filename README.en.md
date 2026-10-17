@@ -14,6 +14,8 @@ You can compare the results of several models side by side, and for a video you 
 
 ![A photo after a quick check with AdcSR, shown at 100% with the original on the left and the result on the right](docs/images/compare-zoom-en.jpg)
 
+Remaster adds native-resolution denoising for images and SDR videos, with the existing Quick check comparison. See [setup and usage](docs/remaster.md).
+
 ## What it does
 
 - Enlarges images and videos 4× with super-resolution models. Videos are saved as H.264.

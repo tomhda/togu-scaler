@@ -1,0 +1,13 @@
+Remaster DRUNet Student
+Copyright (c) 2026 Sean Tempesta. MIT License (LICENSE-MIT-Remaster.txt).
+Project: https://github.com/seantempesta/remaster
+Model: https://huggingface.co/seantempesta/remaster-drunet
+Model revision: 018e7815aa8ef6e3eb6433d2572433d4f36e180e
+Source ONNX SHA-256: b366ac68ed8e30a5d5a4db7776219ea3bd72929a81a53ef3b6f7e8fd0703206a
+
+TOGU SCALER converts the published FP16 dynamic-size ONNX to FP32 with a
+fixed 512x512 tile. The learned weights are not retrained.
+Architecture: DRUNet/UNetRes from KAIR (https://github.com/cszn/KAIR), MIT.
+Training targets: SCUNet GAN + Unsharp Mask, per the author's model card.
+Native-resolution compression artifact removal and detail correction.
+Single-frame inference; SDR only. No temporal consistency guarantee.

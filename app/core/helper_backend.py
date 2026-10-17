@@ -31,6 +31,7 @@ from .settings import (
     DEFAULT_VENDOR_MODELS_DIR,
     HELPER_MODEL_FILES,
     HELPER_MODEL_ADCSR,
+    HELPER_MODEL_REMASTER,
     HELPER_MODEL_SWINIR,
     HELPER_DEFAULT_OVERLAP,
     HELPER_MODEL_OVERLAP,
@@ -127,7 +128,7 @@ def _model_key(settings: UpscaleSettings) -> str:
 def overlap_for_model(model: str | ModelFamily | None) -> int:
     """serve の --overlap（片側マージン、入力 px）をモデル別に返す。
 
-    AdcSR だけ 32（128 タイル → コア 64）。それ以外は既定 16。
+    AdcSR は 32、Remaster は 64。それ以外は既定 16。
     追加モデルは持ち込んだ設定の値を返す。
     """
     key = canonical_helper_model(model)
@@ -534,6 +535,15 @@ def npu_compiled(model: str | ModelFamily | None) -> bool | None:
 def _session_spec(
     settings: UpscaleSettings, width: int, height: int
 ) -> tuple[UpscaleBackend, int, Path]:
+    model_key = _model_key(settings)
+    if model_key == HELPER_MODEL_REMASTER:
+        if settings.backend not in {UpscaleBackend.WINML_GPU, UpscaleBackend.NPU_NATIVE}:
+            raise RuntimeError(t("RemasterはGPU（DirectML）で実行してください。"))
+        try:
+            path = _resolve_model(UpscaleBackend.WINML_GPU, model_key, 512)
+        except HelperBackendUnavailable as exc:
+            raise RuntimeError(t("Remasterモデルが見つかりません。scripts/get_remaster.pyで導入してください。")) from exc
+        return UpscaleBackend.WINML_GPU, 512, path
     if int(settings.scale) != 4:
         raise HelperBackendUnavailable(
             t("新しいGPU/NPUバックエンドは4xモデル専用です。倍率を4xにしてください。")
@@ -597,7 +607,9 @@ def open_session(
         if backend == UpscaleBackend.SWINIR_CUDA:
             progress(0.0, t("SwinIR-MをCUDAへ読み込み中…"))
         elif settings.backend == UpscaleBackend.NPU_NATIVE and backend == UpscaleBackend.WINML_GPU:
-            if is_custom:
+            if model_key == HELPER_MODEL_REMASTER:
+                progress(0.0, t("RemasterはGPUで実行します"))
+            elif is_custom:
                 progress(0.0, t("追加したモデルは GPU で実行します"))
             elif model_key == HELPER_MODEL_ADCSR:
                 progress(0.0, t("AdcSRはNPU非対応のためGPUで実行…"))
@@ -781,6 +793,9 @@ def open_session(
                 progress(0.0, t("AI準備中…"))
 
         client.connect(timeout=timeout, progress=_waiting, cancel=cancel)
+        if model_key == HELPER_MODEL_REMASTER and client.scale != 1:
+            client.close(force=True)
+            raise RuntimeError(t("Remasterの出力は等倍である必要があります。"))
         if is_custom and client.scale != 4:
             # 4 倍でないモデルは開けなかったものとして扱う。
             assert isinstance(model_key, str)
@@ -900,7 +915,7 @@ def upscale_image(
     try:
         if cancel is not None and cancel.is_set():
             raise jobs.Cancelled()
-        progress(0.1, t("アップスケール中…"))
+        progress(0.1, t("ノイズ除去中…") if settings.denoise_enabled else t("アップスケール中…"))
         output = _upscale_with_adcsr_gpu_retry(session, settings, width, height, image, progress, cancel)
         if cancel is not None and cancel.is_set():
             raise jobs.Cancelled()
