@@ -11,6 +11,8 @@
   扱えない場合はエラーになります。奇数寸法の動画はパディングせず、libx264 の
   YUV 4:4:4 で保存します（通常の偶数寸法は YUV 4:2:0）。
 - 単一フレームの処理です。動画のちらつきを抑える時間方向の処理はありません。
+- 処理後に、1 コマ全体の RGB の平均と標準偏差を入力に合わせ直します（本家の
+  `--color-transfer` と同じ処理）。暗い場面で明るさがずれるのを防ぎます。
 - 圧縮ノイズの除去と細部の補正を学習したモデルです。細部や粒子感が変わることが
   あるので、先にクイック確認を使ってください。HDR 動画には対応しません。
 
@@ -50,6 +52,9 @@ and selected-area comparison use the same inference path as the full run. This
 mode runs on DirectML even when NPU is selected, and never substitutes an upscaler
 on failure. It does not chain denoising with 4× super-resolution. It processes each
 frame independently, so temporal stability needs to be checked on moving footage.
+After inference, each frame's per-channel RGB mean and standard deviation are
+matched to the input (the upstream `--color-transfer` step), which keeps dark
+scenes from shifting in brightness.
 Odd video dimensions use software H.264 YUV 4:4:4 to avoid padding. The normal 4K
 output cap is bypassed; unsupported encoder sizes fail instead of being resized.
 

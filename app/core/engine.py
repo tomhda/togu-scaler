@@ -81,7 +81,7 @@ def process_job(job: Job, settings: UpscaleSettings,
     if settings.denoise_enabled and settings.backend not in {
         UpscaleBackend.WINML_GPU, UpscaleBackend.NPU_NATIVE,
     }:
-        raise ValueError(t("RemasterはGPU（DirectML）で実行してください。"))
+        raise ValueError(t("Remaster は、AI実行先が Vulkan のときは使えません。"))
     if job.kind == JobKind.IMAGE:
         return _process_image(job, settings, progress, cancel)
     if job.kind == JobKind.FOLDER:
@@ -93,7 +93,7 @@ def process_job(job: Job, settings: UpscaleSettings,
 
 def _process_image(job, settings, progress, cancel) -> Path:
     if not settings.upscale_enabled:
-        raise ValueError(t("画像にはアップスケーラーモデルを選択してください。"))
+        raise ValueError(t("画像には処理モデルを選択してください。"))
     out = _image_output(job, settings)
     tmp = _part_path(out)
     progress(0.0, t("ノイズ除去中…") if settings.denoise_enabled else t("アップスケール中…"))
@@ -110,7 +110,7 @@ def _process_image(job, settings, progress, cancel) -> Path:
 
 def _process_folder(job, settings, progress, cancel) -> Path:
     if not settings.upscale_enabled:
-        raise ValueError(t("画像フォルダにはアップスケーラーモデルを選択してください。"))
+        raise ValueError(t("画像フォルダには処理モデルを選択してください。"))
     base = _output_base(job, settings)
     out_dir = base / f"{job.input_path.name}{settings.output_suffix()}"
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -136,7 +136,7 @@ def _process_video(job, settings, progress, cancel) -> Path:
         raise ValueError(t("SwinIR CUDA動画ではフレーム補間を併用できません"))
     if not settings.upscale_enabled and not settings.interpolation_enabled:
         raise ValueError(
-            t("アップスケーラーモデルまたはフレーム補間モデルを選択してください。")
+            t("処理モデルまたはフレーム補間モデルを選択してください。")
         )
     tmp = Path(tempfile.mkdtemp(prefix="togu_"))
     src_frames = tmp / "src"

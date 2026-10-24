@@ -96,12 +96,13 @@ def test_remaster_quick_comparison_and_model_switch(app, monkeypatch, tmp_path):
     try:
         win.image_model_combo.setCurrentIndex(win.image_model_combo.findData(HELPER_MODEL_REMASTER))
         assert win.build_settings().scale == 1
-        assert win._scale_btns[1].isChecked()
-        assert win._scale_btns[1].isEnabled()
-        assert not win._scale_btns[4].isEnabled()
+        assert win._scale_wrap.isHidden()
+        assert set(win._scale_btns) == {2, 4}
         # Returning an individual selection to the bulk value removes the override.
         win.model_combo.setCurrentIndex(win.model_combo.findData("animevideov3"))
+        assert not win._scale_wrap.isHidden()
         win.model_combo.setCurrentIndex(win.model_combo.findData(HELPER_MODEL_REMASTER))
+        assert win._scale_wrap.isHidden()
         assert win._selected_job().id not in win._overrides
         win.preview.trial_btn.click()
         assert _wait_until(lambda: not win.preview.is_trial_running())

@@ -132,7 +132,7 @@ def upscale_image(in_path: str, out_path: str, settings: UpscaleSettings,
     if settings.denoise_enabled and settings.backend not in {
         UpscaleBackend.WINML_GPU, UpscaleBackend.NPU_NATIVE,
     }:
-        raise ValueError(t("RemasterはGPU（DirectML）で実行してください。"))
+        raise ValueError(t("Remaster は、AI実行先が Vulkan のときは使えません。"))
 
     # 旧API互換。新GUIのNPU選択は下のNPU_NATIVEへ寄せる。
     if settings.backend == UpscaleBackend.NPU:
@@ -249,7 +249,7 @@ def upscale_folder(in_dir: str, out_dir: str, settings: UpscaleSettings,
     if settings.denoise_enabled and settings.backend not in {
         UpscaleBackend.WINML_GPU, UpscaleBackend.NPU_NATIVE,
     }:
-        raise ValueError(t("RemasterはGPU（DirectML）で実行してください。"))
+        raise ValueError(t("Remaster は、AI実行先が Vulkan のときは使えません。"))
 
     # 旧API互換。新GUIのNPU選択は下のNPU_NATIVEへ寄せる。
     if settings.backend == UpscaleBackend.NPU:

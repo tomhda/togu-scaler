@@ -72,7 +72,7 @@ _HEADER_FIELD_WIDTH = 280
 _HEADER_FIELD_MIN_WIDTH = 120
 
 # 倍率トグルに出す候補（モデルがサポートする倍率のみ有効化）
-_SCALE_CHOICES = (1, 2, 4)
+_SCALE_CHOICES = (2, 4)
 # 左右の列の幅（中央のプレビューが残りを使う）
 _MEDIA_COL_WIDTH = 330
 _SETTINGS_COL_WIDTH = 330
@@ -437,7 +437,7 @@ class MainWindow(QWidget):
         self.model_hint.setWordWrap(True)
         col.addWidget(self.model_hint)
 
-        # 倍率トグル（1x は Remaster の等倍ノイズ除去）
+        # 倍率トグル（2x / 4x）
         scale_box = QHBoxLayout()
         scale_box.setContentsMargins(0, 0, 0, 0)
         scale_box.setSpacing(6)
@@ -831,10 +831,11 @@ class MainWindow(QWidget):
                 self._no_file_hint.setVisible(False)
                 self._model_wrap.setVisible(True)
                 self.model_hint.setVisible(True)
-                self._scale_wrap.setVisible(True)
                 self._interp_wrap.setVisible(is_video)
                 self.preview.quick_box.setVisible(True)
                 model, scale, interp, _individual = self._resolve_effective(job)
+                # Remaster は等倍だけなので、倍率の欄ごと出さない。
+                self._scale_wrap.setVisible(model != HELPER_MODEL_REMASTER)
                 # 補間の説明は動画で補間を選んでいるときだけ出す。
                 self.interpolation_hint.setVisible(bool(is_video and interp))
                 self._set_combo_data(self.model_combo, model)
@@ -1009,7 +1010,7 @@ class MainWindow(QWidget):
             return
         if backend in _HELPER_BACKENDS:
             # 「なし」は無効にするだけで、コンボ自体は戻せるよう有効のままにする。
-            # Remaster は等倍、それ以外の内蔵・追加モデルは 4x 固定。
+            # 追加モデルも 4x 固定（内蔵と同じ）。Remaster は倍率の欄を出さない。
             upscale_fixed = (
                 model in _HELPER_MODEL_VALUES
                 or custom_models.is_custom_key(model)
@@ -1017,7 +1018,7 @@ class MainWindow(QWidget):
             for scale, button in self._scale_btns.items():
                 button.setEnabled(
                     upscale_fixed
-                    and scale == (1 if model == HELPER_MODEL_REMASTER else 4)
+                    and scale == 4
                     and not self._running
                 )
             self._update_all_model_info()
@@ -1059,9 +1060,7 @@ class MainWindow(QWidget):
                 model = None
         for scale, button in self._scale_btns.items():
             try:
-                if model == HELPER_MODEL_REMASTER:
-                    button.setToolTip(t("Remasterは解像度を変えずにノイズを除去します"))
-                elif (
+                if (
                     job is not None
                     and model not in (None, "__missing__")
                     and scale in (2, 3)

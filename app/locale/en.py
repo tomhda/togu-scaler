@@ -581,15 +581,15 @@ EN: dict[str, str | None] = {
     'SwinIR動画のチャンクを結合中…': 'Joining the parts of the SwinIR video…',
     # --- エラー: 設定・形式・試し
     # 画像ジョブの設定不足
-    '画像にはアップスケーラーモデルを選択してください。': 'Choose a processing model for images.',
+    '画像には処理モデルを選択してください。': 'Choose a processing model for images.',
     # フォルダジョブの設定不足
-    '画像フォルダにはアップスケーラーモデルを選択してください。': 'Choose an upscaling model for image folders.',
+    '画像フォルダには処理モデルを選択してください。': 'Choose a processing model for image folders.',
     # 動画にAdcSRを選んだとき
     'AdcSRは静止画専用です。動画には他のモデルを選んでください': 'AdcSR is for still images only. Choose another model for videos',
     # SwinIR動画に補間を併せたとき
     'SwinIR CUDA動画ではフレーム補間を併用できません': "Frame interpolation can't be combined with SwinIR CUDA for videos",
     # 動画ジョブの両方未選択
-    'アップスケーラーモデルまたはフレーム補間モデルを選択してください。': 'Choose an upscaling model or a frame interpolation model.',
+    '処理モデルまたはフレーム補間モデルを選択してください。': 'Choose a processing model or a frame interpolation model.',
     # 内部エラー文。{kind}=種別ID
     '未知のジョブ種別: {kind}': 'Unknown kind of item: {kind}',
     # 対応外ファイルの追加時。{name}=ファイル名
@@ -765,15 +765,24 @@ EN: dict[str, str | None] = {
     'Real-ESRGAN（AMD縮小版）は v0.13.0 で外しました。': 'Real-ESRGAN (AMD compact) was removed in v0.13.0.',
     # 外したモデルを指定したときの直し方
     '--model general-x4v3（Real-ESRGAN General v3）を使ってください。': 'Use --model general-x4v3 (Real-ESRGAN General v3).',
+    # --- Remaster（等倍ノイズ除去）
+    # 処理モデルの一覧に出す名前
     'Remaster（等倍ノイズ除去）': 'Remaster (denoise, original size)',
+    # 処理モデルの下に出す説明
     '解像度を変えずに圧縮ノイズを軽減・GPUで実行': 'Reduces compression noise at the original resolution; runs on the GPU',
-    'RemasterはGPU（DirectML）で実行してください。': 'Run Remaster on the GPU (DirectML).',
+    # AI実行先が Vulkan のまま Remaster で始めたときのエラー文（「AI実行先」は 'AI実行先' と同じ訳語）
+    'Remaster は、AI実行先が Vulkan のときは使えません。': "Remaster can't be used when Run on is set to Vulkan.",
+    # AI実行先が NPU のときの準備中の表示
     'RemasterはGPUで実行します': 'Remaster runs on the GPU',
-    'Remasterの出力は等倍である必要があります。': 'Remaster output must have the same resolution as its input.',
-    'Remasterモデルが見つかりません。scripts/get_remaster.pyで導入してください。': 'Remaster model is missing. Install it with scripts/get_remaster.py.',
-    'Remasterは解像度を変えずにノイズを除去します': 'Remaster removes noise without changing the resolution',
+    # 同梱のモデルが無いときのエラー文
+    'Remaster のモデルが見つかりません。TOGU SCALER を入れ直してください。': 'The Remaster model was not found. Reinstall TOGU SCALER.',
+    # 同梱のモデルが等倍で開けなかったときのエラー文
+    'Remaster のモデルを読み込めませんでした。TOGU SCALER を入れ直してください。': "The Remaster model couldn't be loaded. Reinstall TOGU SCALER.",
+    # 画像・フォルダの処理中の状況行
     'ノイズ除去中…': 'Removing noise…',
+    # 動画の処理中の状況行。{processed}=処理済み、{total}=全フレーム数
     '動画のノイズ除去中… {processed}/{total}フレーム': 'Denoising the video… {processed}/{total} frames',
+    # 動画の処理中の状況行（全フレーム数が分からないとき）。{processed}=処理済み
     '動画のノイズ除去中… {processed}フレーム': 'Denoising the video… {processed} frames',
 }
 

@@ -111,6 +111,66 @@ def test_remaster_rejects_non_native_model(monkeypatch, tmp_path):
             closed.append(kwargs)
 
     monkeypatch.setattr(helper_backend, "ServeClient", Client)
-    with pytest.raises(RuntimeError, match="等倍"):
+    with pytest.raises(RuntimeError, match="読み込めませんでした"):
         helper_backend.open_session(UpscaleSettings(model=HELPER_MODEL_REMASTER), 320, 240)
     assert closed == [{"force": True}]
+
+
+def test_color_match_restores_input_mean_and_contrast():
+    from app.core import color_match
+
+    rng = np.random.default_rng(0)
+    source = rng.integers(20, 236, size=(48, 64, 3), dtype=np.uint8)
+    # 暗く・眠くなった出力（明るさのずれと階調の縮み）を作る。
+    shifted = np.clip(source.astype(np.float32) * 0.8 - 12, 0, 255).astype(np.uint8)
+    matched = color_match.match_channel_stats(source, shifted)
+    assert matched.dtype == np.uint8 and matched.shape == source.shape
+    src = source.reshape(-1, 3).astype(np.float64)
+    out = matched.reshape(-1, 3).astype(np.float64)
+    assert np.allclose(out.mean(0), src.mean(0), atol=0.6)
+    assert np.allclose(out.std(0), src.std(0), atol=0.6)
+    # 並びは崩さない（チャネルごとの単調な対応表）。
+    assert np.abs(matched.astype(int) - source.astype(int)).max() <= 2
+
+
+def test_color_match_keeps_flat_and_mismatched_inputs_safe():
+    from app.core import color_match
+
+    flat = np.full((8, 8, 3), 90, dtype=np.uint8)
+    assert (color_match.match_channel_stats(flat, flat + 3) == 90).all()
+    other = np.zeros((8, 9, 3), dtype=np.uint8)
+    assert color_match.match_channel_stats(flat, other) is other
+
+
+@pytest.mark.parametrize("model, expected", [
+    (HELPER_MODEL_REMASTER, True),
+    ("animevideov3", False),
+])
+def test_only_remaster_session_matches_color(monkeypatch, tmp_path, model, expected):
+    monkeypatch.setattr(helper_backend, "_resolve_model", lambda *a: tmp_path / "m.onnx")
+    monkeypatch.setattr(helper_backend, "_winml_helper", lambda: tmp_path / "helper.exe")
+    scale = 1 if expected else 4
+
+    class Client:
+        def __init__(self, *args, **kwargs):
+            self.scale = scale
+
+        def connect(self, **kwargs):
+            pass
+
+        def upscale(self, image, cancel=None):
+            out = np.repeat(np.repeat(image, scale, 0), scale, 1)
+            return (out // 2).astype(np.uint8)  # 暗くずれた出力
+
+        def close(self, **kwargs):
+            pass
+
+    monkeypatch.setattr(helper_backend, "ServeClient", Client)
+    session = helper_backend.open_session(UpscaleSettings(model=model), 32, 24)
+    assert session.match_color is expected
+    image = np.random.default_rng(1).integers(40, 220, size=(24, 32, 3), dtype=np.uint8)
+    result = session.upscale(image)
+    if expected:
+        assert abs(float(result.mean()) - float(image.mean())) < 1.0
+    else:
+        assert abs(float(result.mean()) - float(image.mean()) / 2) < 1.0
