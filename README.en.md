@@ -259,6 +259,7 @@ Running from source, the requirements of each engine, measurements, environment 
 | RIFE v4.6 | hzwer ([Practical-RIFE](https://github.com/hzwer/Practical-RIFE)) | MIT |
 | FILM (Style) | Google Research ([FILM](https://github.com/google-research/frame-interpolation)); PyTorch port by dajes | Apache 2.0 |
 
+- The upscaling models converted to ONNX (fp32 for the GPU, bf16 for the NPU) are also published per model on [Hugging Face](https://huggingface.co/collections/Tomoali/super-resolution-models-for-the-amd-ryzen-ai-npu-onnx).
 - The portable build bundles FFmpeg (GPL v3), Qt 6 / PySide6 (LGPL v3), realesrgan-ncnn-vulkan (MIT), rife-ncnn-vulkan (MIT), the Microsoft Windows ML runtime, and others.
   The list and where to get each one are in `THIRD-PARTY-NOTICES.en.txt` in the zip, and the full texts of the model licenses are in the `models\ai` folder.
 - Material in the screenshots and comparison images: [Big Buck Bunny](https://peach.blender.org) and [Tears of Steel](https://mango.blender.org) (© Blender Foundation, CC BY 3.0), and Superman (1941), which is in the public domain.

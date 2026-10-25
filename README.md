@@ -259,6 +259,7 @@ togu-scaler-cli quick-check clip.mp4 --time 5 --model animevideov3 --out check.p
 | RIFE v4.6 | hzwer（[Practical-RIFE](https://github.com/hzwer/Practical-RIFE)） | MIT |
 | FILM (Style) | Google Research（[FILM](https://github.com/google-research/frame-interpolation)）。PyTorch 版は dajes | Apache 2.0 |
 
+- 拡大モデルを ONNX に変換したもの（GPU 用 fp32、NPU 用 bf16）は、モデルごとに [Hugging Face](https://huggingface.co/collections/Tomoali/super-resolution-models-for-the-amd-ryzen-ai-npu-onnx) でも公開しています。
 - ポータブル版には、FFmpeg（GPL v3）、Qt 6 / PySide6（LGPL v3）、realesrgan-ncnn-vulkan（MIT）、rife-ncnn-vulkan（MIT）、Microsoft Windows ML ランタイムなどを同梱しています。
   一覧と入手元は zip 内の `THIRD-PARTY-NOTICES.txt`、モデルのライセンス全文は `models\ai` フォルダにあります。
 - 画面写真と比較画像の素材: [Big Buck Bunny](https://peach.blender.org)、[Tears of Steel](https://mango.blender.org)（© Blender Foundation, CC BY 3.0）、Superman (1941)（パブリックドメイン）
