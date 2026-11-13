@@ -35,8 +35,8 @@ powershell -ExecutionPolicy Bypass -File setup.ps1
 
 Vulkan / RIFE の資材は `.venv\Scripts\python.exe scripts\get_models.py` で取得する。
 超解像モデルの取得と変換は「[モデルの取得と変換](#モデルの取得と変換)」を参照。
-`setup.ps1` が取得する zip を作り直すには `scripts\build_release.ps1`、ポータブル版と NPU キットは
-「[ポータブル版と NPU キットの作成](#ポータブル版と-npu-キットの作成)」を参照。
+`setup.ps1` が取得する zip を作り直すには `scripts\build_release.ps1`、セットアップと追加キットは
+「[セットアップと追加キットの作成](#セットアップと追加キットの作成)」を参照。
 
 ## AI 実行先
 
@@ -49,7 +49,7 @@ Vulkan を選んだ場合だけ従来の Real-ESRGAN モデル一覧（2x/4x）�
 |---|---|---|---|
 | 自動（GPU優先） | DirectML GPU（`tools/winml-sr`） | ビルド済み `winml-sr.exe` | 起動失敗時は Vulkan |
 | GPU（DirectML） | 同上 | 同上 | 明示的に GPU を選ぶ |
-| NPU | VitisAI EP（`tools/npu-serve`） | Ryzen AI Software 1.8.0 と `tools/npu-serve`（ポータブル版では NPU キット） | 両方がある PC でだけ選択肢に出る。モデルごとに初回の変換（VAIML コンパイル）が必要 |
+| NPU | VitisAI EP（`tools/npu-serve`） | Ryzen AI Software 1.8.0 と `tools/npu-serve`（配布版では NPU キット） | 両方がある PC でだけ選択肢に出る。モデルごとに初回の変換（VAIML コンパイル）が必要 |
 | SwinIR-M（CUDA・超低速） | PyTorch CUDA（`tools/swinir`） | CUDA 環境と SwinIR-M 重み | NVIDIA 専用。起動できない場合に別モデルへ自動変更はしない |
 | Vulkan | realesrgan-ncnn-vulkan | `vendor/realesrgan` | 従来経路。フォールバック兼用 |
 
@@ -175,18 +175,27 @@ SwinIR-M CUDA は実写 1 秒の動画で E2E 約 19 秒、640x480 アニメ 1 �
 | `TOGU_FILM_MODEL` | `models/film/film_style_fp32.onnx` | FILM の ONNX の明示指定 |
 | `TOGU_LANG` | Windows の表示言語 | 表示言語（`ja` / `en`）。コマンドラインは既定で `en` |
 
-## ポータブル版と追加キットの作成
+## セットアップと追加キットの作成
 
 PowerShell 7（`pwsh`）で実行する。
 
 ```
-pwsh -File scripts\build_portable.ps1 -WithHelper
+pwsh -File scripts\build_installer.ps1
 pwsh -File scripts\build_npu_kit.ps1 -WithAdcSR
 pwsh -File scripts\build_film_kit.ps1
 pwsh -File scripts\build_adcsr_kit.ps1
 ```
 
-- `build_portable.ps1` は PyInstaller で `portable_dist/togu-scaler/` と `togu-scaler-portable-win64.zip` を作る。
+- `build_installer.ps1` は `build_portable.ps1 -WithHelper -NoZip` で配布フォルダ `portable_dist/togu-scaler/` を作り、
+  中身（必須ファイル、キットの中身やメディアが混ざっていないこと）を点検してから、Inno Setup 7.1.0 で
+  `installer/output/togu-scaler-setup-win64.exe` を作る。Inno Setup は公式リリースを取得し、SHA-256 と署名を確かめて
+  `scripts/.cache/` に置く。定義は `installer/togu-scaler.iss`。
+  - 利用者ごとのインストール（管理者権限なし）。既定の場所は `%LOCALAPPDATA%\Programs\togu-scaler`。
+  - 上書きインストールでは `_internal` だけ入れ直し、追加キットと NPU の変換結果（`vendor/amd-npu-1.8`）は残す。
+  - アンインストールでは、追加キットと NPU の変換結果も消す。`models/custom` は残す。
+  - 追加タスクは、デスクトップのショートカットと、`togu-scaler-cli` 用に PATH へ足すこと（どちらも既定ではしない）。
+  - 無人で入れるときは `togu-scaler-setup-win64.exe /VERYSILENT /SUPPRESSMSGBOXES /DIR="<場所>"`。
+- `build_portable.ps1` は PyInstaller で `portable_dist/togu-scaler/` を作る（`-NoZip` を付けないと zip も作る）。
   Python・ffmpeg・realesrgan-ncnn-vulkan・RIFE v4.6 を同梱し、`-WithHelper` で `vendor/winml-sr/` と GPU 用モデル（AdcSR を除く）も同梱する。
   同梱物のライセンス文書（`THIRD-PARTY-NOTICES.txt` ほか）も入れる。NPU 専用のファイルは入れない。
   画面用の `togu-scaler.exe` とコマンドライン用の `togu-scaler-cli.exe` を、同じ `_internal` を共有する形で作る
@@ -197,7 +206,7 @@ pwsh -File scripts\build_adcsr_kit.ps1
 - `build_film_kit.ps1` は `vendor/winml-film/` と `models/film/` を `togu-scaler-film-kit.zip` にまとめる。
   FILM の ONNX の作り方は [scripts/film/README.md](../scripts/film/README.md)。
 - `build_adcsr_kit.ps1` は GPU 用の AdcSR モデルを `togu-scaler-adcsr-kit.zip` にまとめる。
-- どのキットも exe のフォルダに上書きで展開する構造。
+- どのキットもインストール先（exe のフォルダ）に上書きで展開する構造。
 
 ## アーキテクチャ
 
@@ -239,7 +248,7 @@ README の「画質の比較」の画像は `scripts/make_model_guide.py` で作
 - 003_realSR_BSRGAN_DFO_s64w8_SwinIR-M_x4_GAN: Apache-2.0, by Jingyun Liang（SwinIR）。CUDA 経路の実装由来は `tools/swinir/NOTICE.md`
 - AdcSR: Apache-2.0, Guaishou74851（CVPR 2025）。基盤の Stable Diffusion 2.1-base は CreativeML Open RAIL++-M の適用対象で、使用前に利用者自身が使用条件を確認すること（全文は Hugging Face の配布ページにあり、ログインが必要）
 - Release 配布物の zip には上記のライセンス文（`scripts/release-licenses/` と同一内容）と各モデルの NOTICE を同梱する。`winml-sr-win-x64.zip` には Microsoft Windows ML Runtime の license.txt と ThirdPartyNotices.txt を同梱し、再配布条件（license.txt §3）を NOTICE-winml-sr.txt に記載する。AdcSR の zip には同系統の CreativeML Open RAIL-M 全文（使用制限 Attachment A を含む）を同梱し、再配布時は同じ使用制限を利用者に課す
-- ポータブル版には FFmpeg（gyan.dev の full build、GPL v3）、Qt 6 / PySide6（LGPL v3）、realesrgan-ncnn-vulkan（MIT）、rife-ncnn-vulkan（MIT）などを
+- 本体には FFmpeg（gyan.dev の full build、GPL v3）、Qt 6 / PySide6（LGPL v3）、realesrgan-ncnn-vulkan（MIT）、rife-ncnn-vulkan（MIT）などを
   それぞれのライセンスのまま同梱する。一覧と入手元は同梱の `THIRD-PARTY-NOTICES.txt`（原本は `scripts/portable-notices/`）。
   上流の配布物に含まれるサンプル画像・動画は同梱しない
 - ベンチマーク画像の素材: [Big Buck Bunny](https://peach.blender.org) / [Tears of Steel](https://mango.blender.org)（© Blender Foundation, CC-BY 3.0）、Superman (1941) はパブリックドメイン

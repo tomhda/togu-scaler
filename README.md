@@ -2,8 +2,8 @@
 
 [English](README.en.md) [![agent-friendly](docs/images/agent-friendly.svg)](AGENTS.md)
 
-**[⬇ TOGU SCALER v0.13.0 をダウンロード](https://github.com/tomhda/togu-scaler/releases/download/v0.13.0/togu-scaler-portable-win64.zip)**
-（Windows x64 用の zip、384 MB）。手順は「[導入](#導入)」を参照。
+**[⬇ TOGU SCALER v0.14.0 をダウンロード](https://github.com/tomhda/togu-scaler/releases/download/v0.14.0/togu-scaler-setup-win64.exe)**
+（Windows x64 用のセットアップ、296 MB）。手順は「[導入](#導入)」を参照。
 v0.11.0 までの名前は ultraeasy-upscaler です。
 
 TOGU SCALER は、画像や動画を かんたん操作でアップスケール/フレーム補間ができる Windows 用のアプリです。
@@ -51,12 +51,14 @@ Superman (1941)（パブリックドメイン）
 
 Windows 11（x64）と、DirectX 12 対応の GPU で動作確認済み
 
-1. [`togu-scaler-portable-win64.zip`](https://github.com/tomhda/togu-scaler/releases/download/v0.13.0/togu-scaler-portable-win64.zip) をダウンロード
-2. zip を好きな場所に展開（ポータブル版のためインストール不要）。
-3. `togu-scaler.exe` を起動。署名のない実行ファイルなので、Windows の SmartScreen が「Windows によって PC が保護されました」と表示することがある。その場合は「詳細情報」→「実行」。
+1. [`togu-scaler-setup-win64.exe`](https://github.com/tomhda/togu-scaler/releases/download/v0.14.0/togu-scaler-setup-win64.exe) をダウンロードして実行。署名のないセットアップなので、Windows の SmartScreen が「Windows によって PC が保護されました」と表示することがある。その場合は「詳細情報」→「実行」。
+2. 画面に沿って進める。管理者権限は不要で、既定では `%LOCALAPPDATA%\Programs\togu-scaler` に入る。
+3. スタートメニューの「TOGU SCALER」から起動。
 
-zip には動作に必要な全ファイルが入っているため、フォルダの中のファイルを移動・削除すると動作しなくなる可能性が非常に高いです。
-アンインストールは展開フォルダごと削除ください。
+新しい版に上げるときも、同じセットアップを実行するだけ。追加キットと NPU 用に変換したモデルはそのまま残ります。
+v0.13.0 までの zip 版から移るときは、セットアップのインストール先に今のフォルダを選ぶと、追加キットと NPU の変換結果を引き継げます。
+
+アンインストールは、Windows の「設定」→「アプリ」→「インストールされているアプリ」から。追加キットと NPU の変換結果も一緒に消え、`models\custom` に置いたモデルは残ります。
 
 ## 使い方
 
@@ -151,12 +153,12 @@ zip には動作に必要な全ファイルが入っているため、フォル�
 
 | キット | 使えるようになるもの | ファイル |
 |---|---|---|
-| FILM (Style) | フレーム補間モデル FILM (Style) | [`togu-scaler-film-kit.zip`](https://github.com/tomhda/togu-scaler/releases/download/v0.13.0/togu-scaler-film-kit.zip)（178 MB） |
-| AdcSR（GPU 用） | 拡大モデル AdcSR（GPU） | [`togu-scaler-adcsr-kit.zip`](https://github.com/tomhda/togu-scaler/releases/download/v0.13.0/togu-scaler-adcsr-kit.zip)（1.7 GB） |
-| NPU キット | NPU での処理（下記） | [`togu-scaler-npu-kit.zip`](https://github.com/tomhda/togu-scaler/releases/download/v0.13.0/togu-scaler-npu-kit.zip)（58 MB） |
-| AdcSR（NPU 用） | 拡大モデル AdcSR（NPU） | [`togu-scaler-npu-kit-adcsr.zip`](https://github.com/tomhda/togu-scaler/releases/download/v0.13.0/togu-scaler-npu-kit-adcsr.zip)（1.7 GB） |
+| FILM (Style) | フレーム補間モデル FILM (Style) | [`togu-scaler-film-kit.zip`](https://github.com/tomhda/togu-scaler/releases/download/v0.14.0/togu-scaler-film-kit.zip)（178 MB） |
+| AdcSR（GPU 用） | 拡大モデル AdcSR（GPU） | [`togu-scaler-adcsr-kit.zip`](https://github.com/tomhda/togu-scaler/releases/download/v0.14.0/togu-scaler-adcsr-kit.zip)（1.7 GB） |
+| NPU キット | NPU での処理（下記） | [`togu-scaler-npu-kit.zip`](https://github.com/tomhda/togu-scaler/releases/download/v0.14.0/togu-scaler-npu-kit.zip)（58 MB） |
+| AdcSR（NPU 用） | 拡大モデル AdcSR（NPU） | [`togu-scaler-npu-kit-adcsr.zip`](https://github.com/tomhda/togu-scaler/releases/download/v0.14.0/togu-scaler-npu-kit-adcsr.zip)（1.7 GB） |
 
-1. TOGU SCALER を終了し、zip の中身を `togu-scaler.exe` があるフォルダに上書きで展開する。
+1. TOGU SCALER を終了し、zip の中身を TOGU SCALER のフォルダに上書きで展開する。フォルダは、詳細設定の「追加キット」にある「フォルダを開く」で開ける。
 2. 起動すると、モデルの一覧で選べるようになる。
 
 詳細設定の「追加キット」で、導入済みかどうかの確認と、各 zip のダウンロードができます。使用条件は各 zip 内の NOTICE を参照。
@@ -169,7 +171,7 @@ zip には動作に必要な全ファイルが入っているため、フォル�
 
 自分で用意した 4 倍の超解像モデル（ONNX 形式）を、内蔵のモデルと同じように使えます。
 
-1. TOGU SCALER を終了し、モデル（`.onnx`）を `togu-scaler.exe` があるフォルダの `models\custom` に置く。
+1. TOGU SCALER を終了し、モデル（`.onnx`）を TOGU SCALER のフォルダの `models\custom` に置く。このフォルダは、詳細設定の「追加モデル」にある「フォルダを開く」で開ける。
 2. 起動すると、モデルの一覧の末尾に「（追加）」付きで並ぶ。
 
 - 詳細設定の「追加モデル」に、フォルダの場所と、読み込んだモデルの数が出ます。
@@ -182,13 +184,13 @@ zip には動作に必要な全ファイルが入っているため、フォル�
 AMD Ryzen AI 搭載機では、追加キットをダウンロードすることで NPU 処理が可能。次の 2 つが導入済みの場合、選択可能になる。
 
 - AMD の [Ryzen AI Software 1.8.0](https://ryzenai.docs.amd.com/en/latest/inst.html)（AMD のサイトから入手して導入。NPU ドライバ 32.0.203.329 以降）
-- [`togu-scaler-npu-kit.zip`](https://github.com/tomhda/togu-scaler/releases/download/v0.13.0/togu-scaler-npu-kit.zip)（58 MB）。
+- [`togu-scaler-npu-kit.zip`](https://github.com/tomhda/togu-scaler/releases/download/v0.14.0/togu-scaler-npu-kit.zip)（58 MB）。
 
-AdcSR を NPU で使う場合は、追加でNPU専用モデル [`togu-scaler-npu-kit-adcsr.zip`](https://github.com/tomhda/togu-scaler/releases/download/v0.13.0/togu-scaler-npu-kit-adcsr.zip)（1.7 GB）も必要。
+AdcSR を NPU で使う場合は、追加でNPU専用モデル [`togu-scaler-npu-kit-adcsr.zip`](https://github.com/tomhda/togu-scaler/releases/download/v0.14.0/togu-scaler-npu-kit-adcsr.zip)（1.7 GB）も必要。
 
 手順:
 
-1. TOGU SCALER を終了し、キットの zip の中身を `togu-scaler.exe` があるフォルダに上書きで展開する。
+1. TOGU SCALER を終了し、キットの zip の中身を TOGU SCALER のフォルダ（詳細設定の「追加キット」にある「フォルダを開く」で開く）に上書きで展開する。
 2. 起動して歯車を押し、「NPU の準備」で、使うモデルを NPU 用に変換する（モデルの行にある「NPU 用に変換」を押す）。NPU ではモデルをそのままでは動かせないため、モデルごとに最初の一度だけこの作業が必要。変換作業は重くないがメモリ一部を占有し、数分～数時間かかるため注意。
 3. NPU 用への変換が終わったら、「AI実行先」で NPU を選択。
 
@@ -241,7 +243,7 @@ togu-scaler-cli quick-check clip.mp4 --time 5 --model animevideov3 --out check.p
 
 ## 技術的な詳細
 
-ソースからの起動、実行方式ごとの必要環境、実測、環境変数、内部の構成、ポータブル版の作り方は
+ソースからの起動、実行方式ごとの必要環境、実測、環境変数、内部の構成、配布物の作り方は
 [docs/technical.md](docs/technical.md) を参照。
 
 ## ライセンス
@@ -260,6 +262,6 @@ togu-scaler-cli quick-check clip.mp4 --time 5 --model animevideov3 --out check.p
 | FILM (Style) | Google Research（[FILM](https://github.com/google-research/frame-interpolation)）。PyTorch 版は dajes | Apache 2.0 |
 
 - 拡大モデルを ONNX に変換したもの（GPU 用 fp32、NPU 用 bf16）は、モデルごとに [Hugging Face](https://huggingface.co/collections/Tomoali/super-resolution-models-for-the-amd-ryzen-ai-npu-onnx) でも公開しています。
-- ポータブル版には、FFmpeg（GPL v3）、Qt 6 / PySide6（LGPL v3）、realesrgan-ncnn-vulkan（MIT）、rife-ncnn-vulkan（MIT）、Microsoft Windows ML ランタイムなどを同梱しています。
-  一覧と入手元は zip 内の `THIRD-PARTY-NOTICES.txt`、モデルのライセンス全文は `models\ai` フォルダにあります。
+- 本体には、FFmpeg（GPL v3）、Qt 6 / PySide6（LGPL v3）、realesrgan-ncnn-vulkan（MIT）、rife-ncnn-vulkan（MIT）、Microsoft Windows ML ランタイムなどを同梱しています。
+  一覧と入手元はインストール先の `THIRD-PARTY-NOTICES.txt`、モデルのライセンス全文は `models\ai` フォルダにあります。
 - 画面写真と比較画像の素材: [Big Buck Bunny](https://peach.blender.org)、[Tears of Steel](https://mango.blender.org)（© Blender Foundation, CC BY 3.0）、Superman (1941)（パブリックドメイン）

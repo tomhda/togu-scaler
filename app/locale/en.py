@@ -379,7 +379,7 @@ EN: dict[str, str | None] = {
     # 詳細設定内の見出し
     '追加キット': 'Add-on kits',
     # 追加キットの説明文
-    'ダウンロードした zip を、togu-scaler.exe のあるフォルダに展開してください。次回の起動から使えます。': 'Extract the downloaded zip into the folder that contains togu-scaler.exe. It becomes available the next time the app starts.',
+    'ダウンロードした zip を、下のフォルダに上書きで展開してください。次回の起動から使えます。': 'Extract the downloaded zip into the folder below, replacing existing files. It becomes available the next time the app starts.',
     # 追加キットの行の名前
     'NPU キット': 'NPU kit',
     # 追加キットの行の名前

@@ -42,3 +42,7 @@ togu-scaler-portable-*.zip
 togu-scaler-npu-kit*.zip
 togu-scaler-film-kit.zip
 togu-scaler-adcsr-kit.zip
+
+# セットアップの出力と Inno Setup の取得物（scripts/build_installer.ps1）
+/installer/output/
+/scripts/.cache/

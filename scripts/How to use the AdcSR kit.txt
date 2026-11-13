@@ -5,7 +5,8 @@ AdcSR is for still images only. It can't be used for videos.
 
 Install
 1. Close TOGU SCALER.
-2. Extract the contents of this zip into the folder that contains togu-scaler.exe, overwriting files.
+2. Extract the contents of this zip into the TOGU SCALER folder, overwriting files.
+   To open the folder, select Open folder under Add-on kits in the gear menu.
    (The models folder merges with the one already there.)
 3. Start TOGU SCALER. AdcSR is now available under "Image model".
 

@@ -11,8 +11,10 @@ interpolates video frames. Everything runs on the local PC (GPU, or the NPU on s
 ## Setup
 
 - Requires: Windows 11 x64 and a DirectX 12 GPU.
-- Portable build: extract `togu-scaler-portable-win64.zip`. The command is
-  `togu-scaler-cli.exe`, in the same folder as `togu-scaler.exe`. Nothing else to install.
+- Installed app: run `togu-scaler-setup-win64.exe`. It installs to
+  `%LOCALAPPDATA%\Programs\togu-scaler` by default. The command is `togu-scaler-cli.exe`, in the
+  same folder as `togu-scaler.exe`. Nothing else to install. To call it by name, choose the setup
+  task that adds the folder to `PATH`.
 - From source: Python 3.13, `pip install -r requirements.txt`, `ffmpeg` and `ffprobe` on `PATH`,
   then run `powershell -ExecutionPolicy Bypass -File setup.ps1` once to fetch the helper and models.
   The command is `python -m app.cli`, run from the repository root.
@@ -176,7 +178,7 @@ Some models are separate downloads. `status --json` shows which are installed un
 | `adcsr_npu` | `--model AdcSR` on the NPU | `togu-scaler-npu-kit-adcsr.zip` |
 
 The files are on the [releases page](https://github.com/tomhda/togu-scaler/releases/latest).
-To install one, extract the zip into the folder that contains `togu-scaler-cli.exe`.
+To install one, extract the zip into the folder that contains `togu-scaler-cli.exe`, overwriting files.
 The command itself downloads nothing; installing a kit is a decision for the person you work for.
 
 ## More help

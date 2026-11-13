@@ -82,19 +82,20 @@ function Get-ModelLists {
 }
 
 $usageText = @"
-togu-scaler NPU キット
+TOGU SCALER NPU キット
 
 AMD Ryzen AI 搭載の PC で、NPU を使って処理するための追加ファイルです。
 
 必要なもの
-- togu-scaler ポータブル版
+- TOGU SCALER 本体
 - AMD の Ryzen AI Software 1.8.0（AMD のサイトから入手して導入）
 - NPU ドライバ 32.0.203.329 以降
 
 入れ方
-1. togu-scaler を終了します。
-2. この zip の中身を、togu-scaler.exe があるフォルダに上書きで展開します。
-3. togu-scaler を起動し、右上の歯車から詳細設定を開きます。
+1. TOGU SCALER を終了します。
+2. この zip の中身を、TOGU SCALER のフォルダに上書きで展開します。
+   フォルダは、歯車の「追加キット」にある「フォルダを開く」で開けます。
+3. TOGU SCALER を起動し、右上の歯車から詳細設定を開きます。
 4. 「NPU の準備」で、使うモデルの「NPU 用に変換」を押します。
    NPU ではモデルをそのままでは動かせないため、NPU 用に変換する作業です。
 5. 変換が終わったら、「AI実行先」で NPU を選びます。
@@ -111,19 +112,20 @@ Ryzen AI Software を標準と違う場所に入れた場合は、環境変数 T
 "@
 
 $usageTextEn = @"
-togu-scaler NPU kit
+TOGU SCALER NPU kit
 
 Extra files for processing on the NPU of an AMD Ryzen AI PC.
 
 What you need
-- The togu-scaler portable build
+- TOGU SCALER
 - AMD Ryzen AI Software 1.8.0 (get it from AMD and install it)
 - NPU driver 32.0.203.329 or later
 
 How to add it
-1. Close togu-scaler.
-2. Extract the contents of this zip into the folder that contains togu-scaler.exe, overwriting files.
-3. Start togu-scaler and open More settings with the gear at the top right.
+1. Close TOGU SCALER.
+2. Extract the contents of this zip into the TOGU SCALER folder, overwriting files.
+   To open the folder, select Open folder under Add-on kits in the gear menu.
+3. Start TOGU SCALER and open More settings with the gear at the top right.
 4. Under NPU setup, select Convert for NPU on each model you will use.
    The NPU cannot run a model as it is, so this converts the model for the NPU.
 5. When the conversion has finished, choose NPU under Run on.

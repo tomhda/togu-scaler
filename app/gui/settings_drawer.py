@@ -20,7 +20,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from app.core import addon_kits, catalog, custom_models, helper_backend, npu_prepare
+from app.core import addon_kits, binaries, catalog, custom_models, helper_backend, npu_prepare
 from app.core import user_settings
 from app.core.jobs import Cancelled
 from app.core.settings import (
@@ -549,13 +549,25 @@ class SettingsDrawer(QFrame):
         kit_section.addWidget(kit_heading)
         kit_desc = QLabel(
             t(
-                "ダウンロードした zip を、togu-scaler.exe のあるフォルダに"
-                "展開してください。次回の起動から使えます。"
+                "ダウンロードした zip を、下のフォルダに上書きで展開してください。"
+                "次回の起動から使えます。"
             )
         )
         kit_desc.setObjectName("hint")
         kit_desc.setWordWrap(True)
         kit_section.addWidget(kit_desc)
+        kit_folder_row = QHBoxLayout()
+        kit_folder_row.setContentsMargins(0, 0, 0, 0)
+        kit_folder_row.setSpacing(8)
+        self.kit_folder_label = QLabel(str(binaries.repo_root()))
+        self.kit_folder_label.setObjectName("hint")
+        self.kit_folder_label.setWordWrap(True)
+        kit_folder_row.addWidget(self.kit_folder_label, 1)
+        self.kit_open_button = QPushButton(t("フォルダを開く"))
+        self.kit_open_button.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.kit_open_button.clicked.connect(self._on_kit_open_folder)
+        kit_folder_row.addWidget(self.kit_open_button)
+        kit_section.addLayout(kit_folder_row)
         self.kit_grid = QGridLayout()
         self.kit_grid.setHorizontalSpacing(12)
         self.kit_grid.setVerticalSpacing(6)
@@ -821,6 +833,11 @@ class SettingsDrawer(QFrame):
     def refresh_kit_rows(self) -> None:
         """詳細設定を開いたときに導入状態を判定し直す。"""
         self._rebuild_kit_rows()
+
+    @staticmethod
+    def _on_kit_open_folder() -> None:
+        """キットの展開先（アプリのフォルダ）を OS の既定の方法で開く。"""
+        QDesktopServices.openUrl(QUrl.fromLocalFile(str(binaries.repo_root())))
 
     @staticmethod
     def _on_kit_button(filename: str) -> None:

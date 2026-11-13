@@ -5,7 +5,8 @@ It runs on a GPU that supports DirectX 12.
 
 Install
 1. Close TOGU SCALER.
-2. Extract the contents of this zip into the folder that contains togu-scaler.exe, overwriting files.
+2. Extract the contents of this zip into the TOGU SCALER folder, overwriting files.
+   To open the folder, select Open folder under Add-on kits in the gear menu.
    (The vendor and models folders merge with the ones already there.)
 3. Start TOGU SCALER. FILM (Style) is now available under "Frame interpolation model".
 

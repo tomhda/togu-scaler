@@ -1,6 +1,8 @@
 param(
     [string]$Destination = "",
-    [switch]$WithHelper
+    [switch]$WithHelper,
+    # インストーラー（scripts/build_installer.ps1）から呼ぶときはフォルダだけ作る
+    [switch]$NoZip
 )
 
 $ErrorActionPreference = "Stop"
@@ -140,19 +142,20 @@ Copy-Item -LiteralPath (Join-Path $repo "README.md") -Destination (Join-Path $ap
 Copy-Item -LiteralPath (Join-Path $repo "README.en.md") -Destination (Join-Path $app "README.en.md") -Force
 Copy-Item -LiteralPath (Join-Path $repo "AGENTS.md") -Destination (Join-Path $app "AGENTS.md") -Force
 @"
-togu-scaler ポータブル版
+TOGU SCALER
 
-1. togu-scaler.exe をダブルクリックします。
+1. スタートメニューの TOGU SCALER から起動します。
 2. 画像や動画を、ウィンドウにドラッグ＆ドロップします。
 3. 上でモデルを選びます。右側の「クイック確認」を押すと、1 枚だけ先に結果を確認できます。
 4. 「開始」を押します。
 
-フォルダの中のファイルは、移動や削除をしないでください。
+このフォルダの中のファイルは、移動や削除をしないでください。
+外すときは、Windows の「設定」→「アプリ」→「インストールされているアプリ」から TOGU SCALER をアンインストールします。
 
 NPU について
 NPU は標準では使いません。AMD Ryzen AI 搭載の PC で NPU を使うには、次の 2 つが必要です。
 - AMD の Ryzen AI Software 1.8.0（AMD のサイトから入手して導入）
-- 別配布の NPU キット（このフォルダに上書きで展開）
+- 別配布の NPU キット（このフォルダに上書きで展開。歯車の「追加キット」から入手できます）
 
 追加キットについて
 FILM (Style)（フレーム補間）と AdcSR（拡大）は別配布です。歯車の「追加キット」からダウンロードできます。
@@ -161,20 +164,21 @@ FILM (Style)（フレーム補間）と AdcSR（拡大）は別配布です。�
 togu-scaler-cli.exe で、画面を開かずに同じ処理ができます。使い方は AGENTS.md（英語）にあります。
 "@ | Set-Content -LiteralPath (Join-Path $app "はじめに.txt") -Encoding UTF8
 @"
-togu-scaler portable build
+TOGU SCALER
 
-1. Double-click togu-scaler.exe.
+1. Start TOGU SCALER from the Start menu.
 2. Drag and drop images or videos onto the window.
 3. Choose a model at the top. Select Quick check on the right to check the result on one image first.
 4. Select Start.
 
 Do not move or delete the files inside this folder.
+To remove the app, uninstall TOGU SCALER from Settings > Apps > Installed apps in Windows.
 The interface follows the Windows display language. You can change it under More settings > Display language.
 
 About the NPU
 The NPU is not used by default. To use the NPU on an AMD Ryzen AI PC, you need both of the following.
 - AMD Ryzen AI Software 1.8.0 (get it from AMD and install it)
-- The NPU kit, a separate download (extract it into this folder, overwriting files)
+- The NPU kit, a separate download (extract it into this folder, overwriting files; get it from Add-on kits under the gear)
 
 About add-on kits
 FILM (Style) (frame interpolation) and AdcSR (upscaling) are separate downloads. Get them from Add-on kits under the gear.
@@ -192,6 +196,11 @@ if ($LASTEXITCODE -ne 0) {
 & (Join-Path $app "togu-scaler-cli.exe") status
 if ($LASTEXITCODE -ne 0) {
     throw "CLI self-test failed: $LASTEXITCODE"
+}
+
+if ($NoZip) {
+    Write-Output "PORTABLE_FOLDER=$app"
+    exit 0
 }
 
 if (-not $Destination) {

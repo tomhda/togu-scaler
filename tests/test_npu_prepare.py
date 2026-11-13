@@ -811,7 +811,8 @@ def test_build_portable_excludes_npu_files() -> None:
     assert "*_body_*" in text
     assert '"adcsr*"' in text
     assert "NPU は標準では使いません" in text
-    assert "別配布の NPU キット（このフォルダに上書きで展開）" in text
+    assert "別配布の NPU キット（このフォルダに上書きで展開。" in text
+    assert "スタートメニューの TOGU SCALER から起動します" in text
     assert "画像や動画を、ウィンドウにドラッグ＆ドロップします" in text
 
 

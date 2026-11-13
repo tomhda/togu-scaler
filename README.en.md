@@ -2,8 +2,8 @@
 
 [日本語](README.md) [![agent-friendly](docs/images/agent-friendly.svg)](AGENTS.md)
 
-**[⬇ Download TOGU SCALER v0.13.0](https://github.com/tomhda/togu-scaler/releases/download/v0.13.0/togu-scaler-portable-win64.zip)**
-(zip for Windows x64, 384 MB). See [Install](#install) for the steps.
+**[⬇ Download TOGU SCALER v0.14.0](https://github.com/tomhda/togu-scaler/releases/download/v0.14.0/togu-scaler-setup-win64.exe)**
+(setup for Windows x64, 296 MB). See [Install](#install) for the steps.
 Up to v0.11.0, the app was named ultraeasy-upscaler.
 
 TOGU SCALER is a Windows app that upscales images and videos, and interpolates video frames, with a few clicks.
@@ -51,12 +51,14 @@ and Superman (1941), which is in the public domain.
 
 Tested on Windows 11 (x64) with a DirectX 12 GPU.
 
-1. Download [`togu-scaler-portable-win64.zip`](https://github.com/tomhda/togu-scaler/releases/download/v0.13.0/togu-scaler-portable-win64.zip).
-2. Extract the zip anywhere you like. It is a portable app and needs no installation.
-3. Run `togu-scaler.exe`. The file is not code-signed, so Windows SmartScreen may show "Windows protected your PC". Select **More info**, then **Run anyway**.
+1. Download and run [`togu-scaler-setup-win64.exe`](https://github.com/tomhda/togu-scaler/releases/download/v0.14.0/togu-scaler-setup-win64.exe). The setup is not code-signed, so Windows SmartScreen may show "Windows protected your PC". Select **More info**, then **Run anyway**.
+2. Follow the steps on the screen. No administrator rights are needed. By default it installs to `%LOCALAPPDATA%\Programs\togu-scaler`.
+3. Start **TOGU SCALER** from the Start menu.
 
-The zip contains every file the app needs, so moving or deleting files inside the folder will very likely stop it from working.
-To uninstall, delete the extracted folder.
+To update to a new version, run the new setup. Add-on kits and models converted for the NPU are kept.
+If you used the zip build of v0.13.0 or earlier, choose its folder as the install location in the setup to keep your add-on kits and NPU conversions.
+
+To uninstall, go to Settings > Apps > Installed apps in Windows. Add-on kits and NPU conversions are removed with the app. Models you put in `models\custom` are kept.
 
 ## Use
 
@@ -151,12 +153,12 @@ Models that are not included in the app are separate downloads.
 
 | Kit | Adds | File |
 |---|---|---|
-| FILM (Style) | The frame interpolation model FILM (Style) | [`togu-scaler-film-kit.zip`](https://github.com/tomhda/togu-scaler/releases/download/v0.13.0/togu-scaler-film-kit.zip) (178 MB) |
-| AdcSR (for GPU) | The upscaling model AdcSR on the GPU | [`togu-scaler-adcsr-kit.zip`](https://github.com/tomhda/togu-scaler/releases/download/v0.13.0/togu-scaler-adcsr-kit.zip) (1.7 GB) |
-| NPU kit | Processing on the NPU (below) | [`togu-scaler-npu-kit.zip`](https://github.com/tomhda/togu-scaler/releases/download/v0.13.0/togu-scaler-npu-kit.zip) (58 MB) |
-| AdcSR (for NPU) | The upscaling model AdcSR on the NPU | [`togu-scaler-npu-kit-adcsr.zip`](https://github.com/tomhda/togu-scaler/releases/download/v0.13.0/togu-scaler-npu-kit-adcsr.zip) (1.7 GB) |
+| FILM (Style) | The frame interpolation model FILM (Style) | [`togu-scaler-film-kit.zip`](https://github.com/tomhda/togu-scaler/releases/download/v0.14.0/togu-scaler-film-kit.zip) (178 MB) |
+| AdcSR (for GPU) | The upscaling model AdcSR on the GPU | [`togu-scaler-adcsr-kit.zip`](https://github.com/tomhda/togu-scaler/releases/download/v0.14.0/togu-scaler-adcsr-kit.zip) (1.7 GB) |
+| NPU kit | Processing on the NPU (below) | [`togu-scaler-npu-kit.zip`](https://github.com/tomhda/togu-scaler/releases/download/v0.14.0/togu-scaler-npu-kit.zip) (58 MB) |
+| AdcSR (for NPU) | The upscaling model AdcSR on the NPU | [`togu-scaler-npu-kit-adcsr.zip`](https://github.com/tomhda/togu-scaler/releases/download/v0.14.0/togu-scaler-npu-kit-adcsr.zip) (1.7 GB) |
 
-1. Close TOGU SCALER and extract the contents of the zip into the folder that contains `togu-scaler.exe`, overwriting files.
+1. Close TOGU SCALER and extract the contents of the zip into the TOGU SCALER folder, overwriting files. To open the folder, select **Open folder** under **Add-on kits** in the settings.
 2. Start the app. The model is now in the list.
 
 **Add-on kits** in the settings shows which kits are installed and downloads each zip. See the NOTICE file in each zip for the terms of use.
@@ -169,7 +171,7 @@ Models that are not included in the app are separate downloads.
 
 You can use your own 4× super-resolution models (ONNX format) in the same way as the built-in ones.
 
-1. Close TOGU SCALER and put the model (`.onnx`) into the `models\custom` folder inside the folder that contains `togu-scaler.exe`.
+1. Close TOGU SCALER and put the model (`.onnx`) into the `models\custom` folder inside the TOGU SCALER folder. To open it, select **Open folder** under **Your own models** in the settings.
 2. Start the app. The model is at the end of the model lists, marked **(added)**.
 
 - **Your own models** in the settings shows the folder and how many models were loaded.
@@ -182,13 +184,13 @@ You can use your own 4× super-resolution models (ONNX format) in the same way a
 On AMD Ryzen AI PCs, downloading an extra kit lets the app process on the NPU. The NPU becomes selectable when both of the following are in place.
 
 - AMD's [Ryzen AI Software 1.8.0](https://ryzenai.docs.amd.com/en/latest/inst.html) (get it from AMD and install it; NPU driver 32.0.203.329 or later)
-- [`togu-scaler-npu-kit.zip`](https://github.com/tomhda/togu-scaler/releases/download/v0.13.0/togu-scaler-npu-kit.zip) (58 MB)
+- [`togu-scaler-npu-kit.zip`](https://github.com/tomhda/togu-scaler/releases/download/v0.14.0/togu-scaler-npu-kit.zip) (58 MB)
 
-To use AdcSR on the NPU, you also need the NPU-only model [`togu-scaler-npu-kit-adcsr.zip`](https://github.com/tomhda/togu-scaler/releases/download/v0.13.0/togu-scaler-npu-kit-adcsr.zip) (1.7 GB).
+To use AdcSR on the NPU, you also need the NPU-only model [`togu-scaler-npu-kit-adcsr.zip`](https://github.com/tomhda/togu-scaler/releases/download/v0.14.0/togu-scaler-npu-kit-adcsr.zip) (1.7 GB).
 
 Steps:
 
-1. Close TOGU SCALER and extract the contents of the kit zip into the folder that contains `togu-scaler.exe`, overwriting files.
+1. Close TOGU SCALER and extract the contents of the kit zip into the TOGU SCALER folder (open it with **Open folder** under **Add-on kits** in the settings), overwriting files.
 2. Start the app, select the gear, and under **NPU setup** convert the models you will use for the NPU (select **Convert for NPU** on the model's row). The NPU cannot run a model as it is, so each model needs this once. The conversion is not heavy, but it holds some memory and takes from minutes to hours.
 3. When the conversion for the NPU has finished, choose NPU under **Run on**.
 
@@ -241,7 +243,7 @@ The list of commands, how to check a result, and the side effects are in [AGENTS
 
 ## Technical details
 
-Running from source, the requirements of each engine, measurements, environment variables, the internal structure, and how the portable build is made are in
+Running from source, the requirements of each engine, measurements, environment variables, the internal structure, and how the release files are made are in
 [docs/technical.md](https://github.com/tomhda/togu-scaler/blob/main/docs/technical.md) (in Japanese).
 
 ## License
@@ -260,6 +262,6 @@ Running from source, the requirements of each engine, measurements, environment 
 | FILM (Style) | Google Research ([FILM](https://github.com/google-research/frame-interpolation)); PyTorch port by dajes | Apache 2.0 |
 
 - The upscaling models converted to ONNX (fp32 for the GPU, bf16 for the NPU) are also published per model on [Hugging Face](https://huggingface.co/collections/Tomoali/super-resolution-models-for-the-amd-ryzen-ai-npu-onnx).
-- The portable build bundles FFmpeg (GPL v3), Qt 6 / PySide6 (LGPL v3), realesrgan-ncnn-vulkan (MIT), rife-ncnn-vulkan (MIT), the Microsoft Windows ML runtime, and others.
-  The list and where to get each one are in `THIRD-PARTY-NOTICES.en.txt` in the zip, and the full texts of the model licenses are in the `models\ai` folder.
+- The app bundles FFmpeg (GPL v3), Qt 6 / PySide6 (LGPL v3), realesrgan-ncnn-vulkan (MIT), rife-ncnn-vulkan (MIT), the Microsoft Windows ML runtime, and others.
+  The list and where to get each one are in `THIRD-PARTY-NOTICES.en.txt` in the install folder, and the full texts of the model licenses are in the `models\ai` folder.
 - Material in the screenshots and comparison images: [Big Buck Bunny](https://peach.blender.org) and [Tears of Steel](https://mango.blender.org) (© Blender Foundation, CC BY 3.0), and Superman (1941), which is in the public domain.
