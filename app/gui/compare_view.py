@@ -732,8 +732,8 @@ class TrialPanel(QWidget):
 
     # クイック確認の「?」の説明文（改行も仕様どおり）。
     QUICK_HELP = N_(
-        "仕上がり確認のため、1 枚だけ拡大処理を行い、元の画像と比較できます。\n"
-        "動画は、画像下のスライダーで拡大するフレームを選択できます。\n"
+        "仕上がり確認のため、1 枚だけ処理を行い、元の画像と比較できます。\n"
+        "動画は、画像下のスライダーで処理するフレームを選択できます。\n"
         "「範囲を選択してクイック確認」を使うと、その 1 枚のさらに一部分だけに処理を限定できます。"
     )
 
@@ -1233,7 +1233,7 @@ class TrialPanel(QWidget):
                 t("フォルダはクイック確認できません。中の画像を 1 枚追加すると確認できます。")
             )
         elif model_missing:
-            self.status_label.setText(t("拡大モデルを選ぶとクイック確認できます"))
+            self.status_label.setText(t("処理モデルを選ぶとクイック確認できます"))
         else:
             self.status_label.setText("")
 
@@ -1279,6 +1279,7 @@ class TrialPanel(QWidget):
         if self._source_image is None or self._source_png is None:
             return
         if (settings.backend == UpscaleBackend.NPU_NATIVE
+                and not settings.denoise_enabled
                 # 追加モデルは GPU で実行するため変換は要らない。
                 and not custom_models.is_custom_key(settings.model)
                 and not npu_prepare.is_converted(str(settings.model))):

@@ -20,7 +20,7 @@ import numpy as np
 from PIL import Image, ImageOps
 
 from ..i18n import t
-from . import binaries, custom_models, jobs, media
+from . import binaries, color_match, custom_models, jobs, media
 from .jobs import ProgressCb
 from .serve_client import HelperOutputInvalid, ServeClient, ServeClientError
 from .settings import (
@@ -31,6 +31,7 @@ from .settings import (
     DEFAULT_VENDOR_MODELS_DIR,
     HELPER_MODEL_FILES,
     HELPER_MODEL_ADCSR,
+    HELPER_MODEL_REMASTER,
     HELPER_MODEL_SWINIR,
     HELPER_DEFAULT_OVERLAP,
     HELPER_MODEL_OVERLAP,
@@ -79,13 +80,18 @@ class HelperSession:
     backend: UpscaleBackend
     model_path: Path
     cache_hit: bool = True
+    # 等倍の Remaster だけ、出力の色と明るさを 1 コマ全体で入力に合わせ直す。
+    match_color: bool = False
 
     @property
     def scale(self) -> int:
         return self.client.scale
 
     def upscale(self, image: np.ndarray, cancel=None) -> np.ndarray:
-        return self.client.upscale(image, cancel=cancel)
+        output = self.client.upscale(image, cancel=cancel)
+        if self.match_color:
+            output = color_match.match_channel_stats(image, output)
+        return output
 
     def close(self, *, force: bool = False) -> None:
         self.client.close(force=force)
@@ -127,7 +133,7 @@ def _model_key(settings: UpscaleSettings) -> str:
 def overlap_for_model(model: str | ModelFamily | None) -> int:
     """serve の --overlap（片側マージン、入力 px）をモデル別に返す。
 
-    AdcSR だけ 32（128 タイル → コア 64）。それ以外は既定 16。
+    AdcSR は 32、Remaster は 64。それ以外は既定 16。
     追加モデルは持ち込んだ設定の値を返す。
     """
     key = canonical_helper_model(model)
@@ -534,6 +540,15 @@ def npu_compiled(model: str | ModelFamily | None) -> bool | None:
 def _session_spec(
     settings: UpscaleSettings, width: int, height: int
 ) -> tuple[UpscaleBackend, int, Path]:
+    model_key = _model_key(settings)
+    if model_key == HELPER_MODEL_REMASTER:
+        if settings.backend not in {UpscaleBackend.WINML_GPU, UpscaleBackend.NPU_NATIVE}:
+            raise RuntimeError(t("Remaster は、AI実行先が Vulkan のときは使えません。"))
+        try:
+            path = _resolve_model(UpscaleBackend.WINML_GPU, model_key, 512)
+        except HelperBackendUnavailable as exc:
+            raise RuntimeError(t("Remaster のモデルが見つかりません。TOGU SCALER を入れ直してください。")) from exc
+        return UpscaleBackend.WINML_GPU, 512, path
     if int(settings.scale) != 4:
         raise HelperBackendUnavailable(
             t("新しいGPU/NPUバックエンドは4xモデル専用です。倍率を4xにしてください。")
@@ -597,7 +612,9 @@ def open_session(
         if backend == UpscaleBackend.SWINIR_CUDA:
             progress(0.0, t("SwinIR-MをCUDAへ読み込み中…"))
         elif settings.backend == UpscaleBackend.NPU_NATIVE and backend == UpscaleBackend.WINML_GPU:
-            if is_custom:
+            if model_key == HELPER_MODEL_REMASTER:
+                progress(0.0, t("RemasterはGPUで実行します"))
+            elif is_custom:
                 progress(0.0, t("追加したモデルは GPU で実行します"))
             elif model_key == HELPER_MODEL_ADCSR:
                 progress(0.0, t("AdcSRはNPU非対応のためGPUで実行…"))
@@ -781,13 +798,17 @@ def open_session(
                 progress(0.0, t("AI準備中…"))
 
         client.connect(timeout=timeout, progress=_waiting, cancel=cancel)
+        if model_key == HELPER_MODEL_REMASTER and client.scale != 1:
+            client.close(force=True)
+            raise RuntimeError(t("Remaster のモデルを読み込めませんでした。TOGU SCALER を入れ直してください。"))
         if is_custom and client.scale != 4:
             # 4 倍でないモデルは開けなかったものとして扱う。
             assert isinstance(model_key, str)
             client.close(force=True)
             raise custom_models.CustomModelLoadFailed(
                 _custom_load_failed_message(_custom_display_name(model_key)))
-        return HelperSession(client, backend, model_path, cache_hit)
+        return HelperSession(client, backend, model_path, cache_hit,
+                             match_color=model_key == HELPER_MODEL_REMASTER)
     except jobs.Cancelled:
         raise
     except HelperBackendUnavailable:
@@ -900,7 +921,7 @@ def upscale_image(
     try:
         if cancel is not None and cancel.is_set():
             raise jobs.Cancelled()
-        progress(0.1, t("アップスケール中…"))
+        progress(0.1, t("ノイズ除去中…") if settings.denoise_enabled else t("アップスケール中…"))
         output = _upscale_with_adcsr_gpu_retry(session, settings, width, height, image, progress, cancel)
         if cancel is not None and cancel.is_set():
             raise jobs.Cancelled()

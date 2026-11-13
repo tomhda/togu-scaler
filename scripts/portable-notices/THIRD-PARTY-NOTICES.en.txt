@@ -45,3 +45,5 @@ This folder also contains the third-party software and models listed below, each
    - The author and license of each model are listed in models/ai/NOTICE-models-gpu-fp32.txt (in Japanese)
      and in the License section of README.en.md.
    - 4xNomosUni_span_multijpg is under CC BY 4.0 (Philip Hofmann / Phips). Keep the attribution.
+   - Remaster DRUNet Student (native-resolution denoising): MIT, Copyright (c) 2026 Sean Tempesta.
+     See models/ai/NOTICE-Remaster.txt and LICENSE-MIT-Remaster.txt.

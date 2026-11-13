@@ -1,0 +1,3 @@
+# Build-time model preparation only. The application uses the existing helper.
+onnx>=1.17
+numpy>=2.0

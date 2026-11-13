@@ -43,9 +43,9 @@ EN: dict[str, str | None] = {
     # 歯車ボタンのツールチップ／詳細設定の見出し（2箇所で同じ文言）
     '詳細設定': 'More settings',
     # ヘッダの一括設定の見出し
-    '画像の拡大モデル': 'Image model',
+    '画像の処理モデル': 'Image model',
     # ヘッダの一括設定の見出し
-    '動画の拡大モデル': 'Video model',
+    '動画の処理モデル': 'Video model',
     # --- メイン画面: 左列（メディア一覧・ドロップ）
     # 左列の見出し
     'メディア': 'Media',
@@ -71,7 +71,7 @@ EN: dict[str, str | None] = {
     # 範囲選択中の画像上の案内
     '確認したい部分をドラッグで囲んでください': 'Drag over the part you want to check',
     # クイック確認の「?」の説明文（3 行。改行も原文どおり）
-    '仕上がり確認のため、1 枚だけ拡大処理を行い、元の画像と比較できます。\n動画は、画像下のスライダーで拡大するフレームを選択できます。\n「範囲を選択してクイック確認」を使うと、その 1 枚のさらに一部分だけに処理を限定できます。': 'Enlarges just one image so you can compare it with the original before the full run.\nFor a video, choose the frame to enlarge with the slider under the picture.\n"Quick check on a selected area" limits the processing to part of that one image.',
+    '仕上がり確認のため、1 枚だけ処理を行い、元の画像と比較できます。\n動画は、画像下のスライダーで処理するフレームを選択できます。\n「範囲を選択してクイック確認」を使うと、その 1 枚のさらに一部分だけに処理を限定できます。': 'Processes just one image so you can compare it with the original before the full run.\nFor a video, choose the frame to process with the slider under the picture.\n"Quick check on a selected area" limits the processing to part of that one image.',
     # 確認の実行中のクイック確認ボタン／NPU変換の実行中のボタン（2箇所で同じ文言）
     '中止': 'Cancel',
     # 比較ビューの表示ボタンのツールチップ（画像に重ねる小ボタン）
@@ -103,7 +103,7 @@ EN: dict[str, str | None] = {
     # フォルダ選択の確認の状況行
     'フォルダはクイック確認できません。中の画像を 1 枚追加すると確認できます。': "Folders can't be quick-checked. Add one of the images inside to check it.",
     # モデル未選択の確認の状況行
-    '拡大モデルを選ぶとクイック確認できます': 'Choose an upscaling model to use quick check',
+    '処理モデルを選ぶとクイック確認できます': 'Choose a processing model to use quick check',
     # エラー文が空のときの代替表示
     '不明なエラー': 'Unknown error',
     # --- メイン画面: 右列（設定と開始）
@@ -116,7 +116,7 @@ EN: dict[str, str | None] = {
     # 行の種別表示
     '動画': 'Video',
     # 右列の項目名
-    '拡大モデル': 'Upscaling model',
+    '処理モデル': 'Processing model',
     # 右列の項目名
     '倍率': 'Scale',
     # 個別設定の案内1行
@@ -168,11 +168,11 @@ EN: dict[str, str | None] = {
     # 開始時（空）の状況行
     '処理するファイルがありません。': 'There are no files to process.',
     # 開始時（個別未選択）の状況行。{name}=ファイル名（例: photo.png）
-    '{name}の拡大モデルを選んでください。': 'Choose an upscaling model for {name}.',
+    '{name}の処理モデルを選んでください。': 'Choose a processing model for {name}.',
     # 開始時（動画・未選択）の状況行
-    '動画の拡大モデルかフレーム補間モデルを選んでください。': 'Choose an upscaling model or a frame interpolation model for videos.',
+    '動画の処理モデルかフレーム補間モデルを選んでください。': 'Choose a processing model or a frame interpolation model for videos.',
     # 開始時（画像・未選択）の状況行
-    '画像の拡大モデルを選んでください。': 'Choose an upscaling model for images.',
+    '画像の処理モデルを選んでください。': 'Choose a processing model for images.',
     # 変換中の開始時の状況行
     'NPU の変換中は処理を始められません': "You can't start while a model is being converted for the NPU",
     # 未変換モデルの開始・試し時の状況行。{label}=モデル表示名（例: Anime Video v3）
@@ -581,15 +581,15 @@ EN: dict[str, str | None] = {
     'SwinIR動画のチャンクを結合中…': 'Joining the parts of the SwinIR video…',
     # --- エラー: 設定・形式・試し
     # 画像ジョブの設定不足
-    '画像にはアップスケーラーモデルを選択してください。': 'Choose an upscaling model for images.',
+    '画像には処理モデルを選択してください。': 'Choose a processing model for images.',
     # フォルダジョブの設定不足
-    '画像フォルダにはアップスケーラーモデルを選択してください。': 'Choose an upscaling model for image folders.',
+    '画像フォルダには処理モデルを選択してください。': 'Choose a processing model for image folders.',
     # 動画にAdcSRを選んだとき
     'AdcSRは静止画専用です。動画には他のモデルを選んでください': 'AdcSR is for still images only. Choose another model for videos',
     # SwinIR動画に補間を併せたとき
     'SwinIR CUDA動画ではフレーム補間を併用できません': "Frame interpolation can't be combined with SwinIR CUDA for videos",
     # 動画ジョブの両方未選択
-    'アップスケーラーモデルまたはフレーム補間モデルを選択してください。': 'Choose an upscaling model or a frame interpolation model.',
+    '処理モデルまたはフレーム補間モデルを選択してください。': 'Choose a processing model or a frame interpolation model.',
     # 内部エラー文。{kind}=種別ID
     '未知のジョブ種別: {kind}': 'Unknown kind of item: {kind}',
     # 対応外ファイルの追加時。{name}=ファイル名
@@ -765,5 +765,24 @@ EN: dict[str, str | None] = {
     'Real-ESRGAN（AMD縮小版）は v0.13.0 で外しました。': 'Real-ESRGAN (AMD compact) was removed in v0.13.0.',
     # 外したモデルを指定したときの直し方
     '--model general-x4v3（Real-ESRGAN General v3）を使ってください。': 'Use --model general-x4v3 (Real-ESRGAN General v3).',
+    # --- Remaster（等倍ノイズ除去）
+    # 処理モデルの一覧に出す名前
+    'Remaster（等倍ノイズ除去）': 'Remaster (denoise, original size)',
+    # 処理モデルの下に出す説明
+    '解像度を変えずに圧縮ノイズを軽減・GPUで実行': 'Reduces compression noise at the original resolution; runs on the GPU',
+    # AI実行先が Vulkan のまま Remaster で始めたときのエラー文（「AI実行先」は 'AI実行先' と同じ訳語）
+    'Remaster は、AI実行先が Vulkan のときは使えません。': "Remaster can't be used when Run on is set to Vulkan.",
+    # AI実行先が NPU のときの準備中の表示
+    'RemasterはGPUで実行します': 'Remaster runs on the GPU',
+    # 同梱のモデルが無いときのエラー文
+    'Remaster のモデルが見つかりません。TOGU SCALER を入れ直してください。': 'The Remaster model was not found. Reinstall TOGU SCALER.',
+    # 同梱のモデルが等倍で開けなかったときのエラー文
+    'Remaster のモデルを読み込めませんでした。TOGU SCALER を入れ直してください。': "The Remaster model couldn't be loaded. Reinstall TOGU SCALER.",
+    # 画像・フォルダの処理中の状況行
+    'ノイズ除去中…': 'Removing noise…',
+    # 動画の処理中の状況行。{processed}=処理済み、{total}=全フレーム数
+    '動画のノイズ除去中… {processed}/{total}フレーム': 'Denoising the video… {processed}/{total} frames',
+    # 動画の処理中の状況行（全フレーム数が分からないとき）。{processed}=処理済み
+    '動画のノイズ除去中… {processed}フレーム': 'Denoising the video… {processed} frames',
 }
 

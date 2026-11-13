@@ -10,6 +10,7 @@ from ..i18n import N_
 from .binaries import FILM_MODEL
 from .settings import (
     HELPER_MODEL_ADCSR,
+    HELPER_MODEL_REMASTER,
     HELPER_MODEL_ANIME,
     HELPER_MODEL_GENERAL,
     HELPER_MODEL_SPAN,
@@ -28,6 +29,7 @@ MODEL_LABELS = {
     HELPER_MODEL_GENERAL: N_("Real-ESRGAN General v3"),
     HELPER_MODEL_SWINIR: N_("SwinIR-M"),
     HELPER_MODEL_ADCSR: N_("AdcSR"),
+    HELPER_MODEL_REMASTER: N_("Remaster（等倍ノイズ除去）"),
 }
 HELPER_MODEL_OPTIONS = [
     (N_("なし（拡大しない）"), None),
@@ -36,6 +38,7 @@ HELPER_MODEL_OPTIONS = [
     (MODEL_LABELS[HELPER_MODEL_GENERAL], HELPER_MODEL_GENERAL),
     (MODEL_LABELS[HELPER_MODEL_SWINIR], HELPER_MODEL_SWINIR),
     (MODEL_LABELS[HELPER_MODEL_ADCSR], HELPER_MODEL_ADCSR),
+    (MODEL_LABELS[HELPER_MODEL_REMASTER], HELPER_MODEL_REMASTER),
 ]
 HELPER_MODEL_VALUES = {
     value for _label, value in HELPER_MODEL_OPTIONS if value is not None
@@ -53,6 +56,7 @@ MODEL_HINT = {
     HELPER_MODEL_GENERAL: N_("実写向け・くっきり・速い"),
     HELPER_MODEL_SWINIR: N_("実写の静止画向け・高精細・遅い"),
     HELPER_MODEL_ADCSR: N_("実写の静止画向け・最高画質・とても遅い"),
+    HELPER_MODEL_REMASTER: N_("解像度を変えずに圧縮ノイズを軽減・GPUで実行"),
     "realesrgan-x4plus": N_("実写向け・高画質・遅い"),
     "realesrgan-x4plus-anime": N_("アニメ向け・高画質・遅い"),
     "realesr-general-x4v3": N_("実写・アニメ兼用・ノイズ除去強め"),

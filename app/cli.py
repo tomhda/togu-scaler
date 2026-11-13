@@ -214,7 +214,7 @@ def build_parser(argv: list[str] | None = None) -> CliParser:
     p.add_argument("inputs", nargs="+", help="Images, videos, or folders.")
     p.add_argument(
         "--model", default=None,
-        help="Upscaling model key (see models). 'none' skips upscaling. "
+        help="Processing model key (see models). Remaster denoises at 1x. 'none' skips upscaling. "
         "Default: the backend's default model, which upscales 4x.",
     )
     p.add_argument(
@@ -232,9 +232,9 @@ def build_parser(argv: list[str] | None = None) -> CliParser:
         "or with FILM.",
     )
     p.add_argument(
-        "--scale", type=int, choices=(2, 4), default=4,
+        "--scale", type=int, choices=(1, 2, 4), default=None,
         help="Upscaling factor. 2 works only for some Vulkan models. "
-        "Default: 4.",
+        "Default: 1 for Remaster, otherwise 4.",
     )
     p.add_argument(
         "--backend", choices=BACKEND_NAMES, default="auto",
@@ -296,12 +296,12 @@ def build_parser(argv: list[str] | None = None) -> CliParser:
     )
     p.add_argument(
         "--model", default=None,
-        help="Upscaling model key (see models). Default: first model "
+        help="Processing model key (see models). Remaster denoises at 1x. Default: first model "
         "of the backend.",
     )
     p.add_argument(
-        "--scale", type=int, choices=(2, 4), default=4,
-        help="Upscaling factor. Default: 4.",
+        "--scale", type=int, choices=(1, 2, 4), default=None,
+        help="Scale. Default: 1 for Remaster, otherwise 4.",
     )
     p.add_argument(
         "--backend", choices=BACKEND_NAMES, default="auto",
@@ -425,6 +425,7 @@ def _upscale_keys(backend: str) -> list[str]:
     from app.core import binaries, custom_models
     from app.core.settings import (
         HELPER_MODEL_ADCSR,
+        HELPER_MODEL_REMASTER,
         HELPER_MODEL_ANIME,
         HELPER_MODEL_GENERAL,
         HELPER_MODEL_SPAN,
@@ -438,6 +439,7 @@ def _upscale_keys(backend: str) -> list[str]:
             HELPER_MODEL_GENERAL,
             HELPER_MODEL_SWINIR,
             HELPER_MODEL_ADCSR,
+            HELPER_MODEL_REMASTER,
         ]
         # 追加モデルは内蔵の後ろに並べる（Vulkan には出さない）。
         try:
@@ -509,6 +511,11 @@ def _check_model_installed(backend: str, model: str | None) -> None:
         return
     if _model_available(backend, model):
         return
+    from app.core.settings import HELPER_MODEL_REMASTER
+    if model == HELPER_MODEL_REMASTER:
+        raise UsageError(CODE_KIT_MISSING, "Remaster model is not installed.",
+                         "From source: install requirements-remaster.txt and run "
+                         "scripts/get_remaster.py. See docs/remaster.md.")
     if isinstance(model, str) and model.startswith("custom:"):
         # 一覧に出たあとで消された追加モデルは「知らないモデル」扱い。
         raise UsageError(
@@ -572,6 +579,9 @@ def _check_interpolation_kit(key: str) -> None:
 
 
 def _model_available(backend: str, key: str) -> bool:
+    from app.core.settings import HELPER_MODEL_REMASTER
+    if key == HELPER_MODEL_REMASTER:
+        backend = "gpu"
     if isinstance(key, str) and key.startswith("custom:"):
         from app.core import custom_models as custom_module
 
@@ -634,16 +644,16 @@ def _upscale_entries(backend: str) -> list[dict]:
                 "scales": scales or [4], "available": True, "note": note,
             }
         else:
-            from app.core.settings import HELPER_MODEL_ADCSR
+            from app.core.settings import HELPER_MODEL_ADCSR, HELPER_MODEL_REMASTER
 
             entry = {
                 "key": key, "name": name, "image": True,
                 "video": key != HELPER_MODEL_ADCSR,
-                "scales": [4],
+                "scales": [1] if key == HELPER_MODEL_REMASTER else [4],
                 "available": _model_available(backend, key),
                 "note": note,
             }
-            if backend == "npu":
+            if backend == "npu" and key != HELPER_MODEL_REMASTER:
                 entry["converted"] = bool(helper_backend.npu_compiled(key))
         entries.append(entry)
     return entries
@@ -839,8 +849,15 @@ def _run_options(args: argparse.Namespace) -> dict:
 
 def _check_scale(backend: str, model: str | None, scale: int) -> None:
     from app.core import binaries
+    from app.core.settings import HELPER_MODEL_REMASTER
 
     if model is None:
+        return
+    if model == HELPER_MODEL_REMASTER:
+        if scale != 1:
+            raise UsageError(CODE_SCALE_NOT_SUPPORTED,
+                             "Remaster preserves the input resolution (1x only).",
+                             "Use --scale 1, or omit --scale.")
         return
     if backend in ("gpu", "npu"):
         if scale != 4:
@@ -894,7 +911,8 @@ def _check_npu(backend: str, model: str | None, kinds: list[str],
 
     if backend != "npu" or model is None:
         return
-    if isinstance(model, str) and model.startswith("custom:"):
+    from app.core.settings import HELPER_MODEL_REMASTER
+    if model == HELPER_MODEL_REMASTER or (isinstance(model, str) and model.startswith("custom:")):
         # 追加モデルは GPU で実行するため NPU の変換は要らない。
         return
     npu_ok, _reason = _npu_state()
@@ -1117,6 +1135,9 @@ def _validate_run(args: argparse.Namespace):
     model = _check_model_key(
         backend, args.model
         if args.model is not None else _default_model_key(backend))
+    if args.scale is None:
+        from app.core.settings import HELPER_MODEL_REMASTER
+        args.scale = 1 if model == HELPER_MODEL_REMASTER else 4
     interpolation = options["interpolation"]
     factor, fps = options["factor"], options["fps"]
     _check_scale(backend, model, int(args.scale))
@@ -1404,6 +1425,9 @@ def _cmd_quick_check(args: argparse.Namespace) -> int:
     model = _check_model_key(
         backend, args.model
         if args.model is not None else _default_model_key(backend))
+    if args.scale is None:
+        from app.core.settings import HELPER_MODEL_REMASTER
+        args.scale = 1 if model == HELPER_MODEL_REMASTER else 4
     _check_scale(backend, model, int(args.scale))
     _check_model_installed(backend, model)
     raw = args.input

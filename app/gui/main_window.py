@@ -45,6 +45,7 @@ from app.core.settings import (
     HELPER_MODEL_SPAN,
     HELPER_MODEL_SWINIR,
     HELPER_MODEL_ADCSR,
+    HELPER_MODEL_REMASTER,
     OutputLocation,
     UpscaleBackend,
     UpscaleSettings,
@@ -277,10 +278,10 @@ class MainWindow(QWidget):
         # 同じ幅で、狭いときは最小まで縮む。
         self.image_model_combo = ModelCombo()
         self._fix_header_combo_width(self.image_model_combo)
-        row.addWidget(self._header_field(t("画像の拡大モデル"), self.image_model_combo), 10)
+        row.addWidget(self._header_field(t("画像の処理モデル"), self.image_model_combo), 10)
         self.video_model_combo = ModelCombo()
         self._fix_header_combo_width(self.video_model_combo)
-        row.addWidget(self._header_field(t("動画の拡大モデル"), self.video_model_combo), 10)
+        row.addWidget(self._header_field(t("動画の処理モデル"), self.video_model_combo), 10)
         self.global_interpolation_combo = ModelCombo()
         self._fix_header_combo_width(self.global_interpolation_combo)
         self._populate_interpolation_combo(self.global_interpolation_combo)
@@ -425,7 +426,7 @@ class MainWindow(QWidget):
         self._compact(self.model_combo)
         self._model_wrap = QWidget()
         self._model_wrap.setObjectName("scaleWrap")
-        model_layout = self._field(t("拡大モデル"), self.model_combo)
+        model_layout = self._field(t("処理モデル"), self.model_combo)
         model_layout.setContentsMargins(0, 0, 0, 0)
         self._model_wrap.setLayout(model_layout)
         col.addWidget(self._model_wrap)
@@ -746,7 +747,7 @@ class MainWindow(QWidget):
             bulk_scale = int(self._image_scale)
             bulk_interp = None
         if self._selected_backend() in _HELPER_BACKENDS and bulk_model is not None:
-            bulk_scale = 4
+            bulk_scale = 1 if bulk_model == HELPER_MODEL_REMASTER else 4
         if eff_model != bulk_model or eff_scale != bulk_scale:
             return False
         return eff_interp == bulk_interp if is_video else True
@@ -830,10 +831,11 @@ class MainWindow(QWidget):
                 self._no_file_hint.setVisible(False)
                 self._model_wrap.setVisible(True)
                 self.model_hint.setVisible(True)
-                self._scale_wrap.setVisible(True)
                 self._interp_wrap.setVisible(is_video)
                 self.preview.quick_box.setVisible(True)
                 model, scale, interp, _individual = self._resolve_effective(job)
+                # Remaster は等倍だけなので、倍率の欄ごと出さない。
+                self._scale_wrap.setVisible(model != HELPER_MODEL_REMASTER)
                 # 補間の説明は動画で補間を選んでいるときだけ出す。
                 self.interpolation_hint.setVisible(bool(is_video and interp))
                 self._set_combo_data(self.model_combo, model)
@@ -914,9 +916,9 @@ class MainWindow(QWidget):
             scale = self._image_scale
             interp = None
             individual = False
-        # 新AIヘルパーは 4x 固定（古い個別値が残っていても開始時は 4x）
+        # モデル本来の倍率を使う（保存されている古い倍率は使わない）。
         if self._selected_backend() in _HELPER_BACKENDS and model is not None:
-            scale = 4
+            scale = 1 if model == HELPER_MODEL_REMASTER else 4
         return (
             None if model in (None, "__missing__") else str(model),
             scale,
@@ -1008,7 +1010,7 @@ class MainWindow(QWidget):
             return
         if backend in _HELPER_BACKENDS:
             # 「なし」は無効にするだけで、コンボ自体は戻せるよう有効のままにする。
-            # 追加モデルも 4x 固定（内蔵と同じ）。
+            # 追加モデルも 4x 固定（内蔵と同じ）。Remaster は倍率の欄を出さない。
             upscale_fixed = (
                 model in _HELPER_MODEL_VALUES
                 or custom_models.is_custom_key(model)
@@ -1374,7 +1376,7 @@ class MainWindow(QWidget):
                 continue
             base = t(_MODEL_LABELS.get(data, data))
             suffix = ""
-            if show_unconverted and not npu_prepare.is_converted(str(data)):
+            if show_unconverted and data != HELPER_MODEL_REMASTER and not npu_prepare.is_converted(str(data)):
                 suffix = t("（未変換）")
             info = _MODEL_INFO.get((backend, data))
             item = item_model.item(i)
@@ -1528,12 +1530,12 @@ class MainWindow(QWidget):
                 if self._image_model not in allowed:
                     self._image_model = default
                 if backend in _HELPER_BACKENDS:
-                    self._image_scale = 4
+                    self._image_scale = 1 if self._image_model == HELPER_MODEL_REMASTER else 4
             else:
                 if self._video_model not in allowed:
                     self._video_model = default
                 if backend in _HELPER_BACKENDS:
-                    self._video_scale = 4
+                    self._video_scale = 1 if self._video_model == HELPER_MODEL_REMASTER else 4
         for jid, override in self._overrides.items():
             job = self._jobs.get(jid)
             tab = self._job_kind_tab(job) if job is not None else _IMAGE_TAB
@@ -1541,7 +1543,7 @@ class MainWindow(QWidget):
             if override.get("model") not in allowed:
                 override["model"] = self._default_model_for(backend, models)
             if backend in _HELPER_BACKENDS:
-                override["scale"] = 4
+                override["scale"] = 1 if override.get("model") == HELPER_MODEL_REMASTER else 4
 
     def _on_backend_changed(self, *_args) -> None:
         backend = self._selected_backend()
@@ -1698,7 +1700,7 @@ class MainWindow(QWidget):
                 # 設定に載せたままにする。従来の単一設定との互換のため。
                 interpolation = self._video_interpolation
         if s.backend in _HELPER_BACKENDS and model is not None:
-            scale = 4
+            scale = 1 if model == HELPER_MODEL_REMASTER else 4
         s.scale = scale
         # helperも表示ラベルではなく、選択肢の具体的なモデルキーを保存する。
         # 「なし」はアップスケール無効として扱い、前回のモデルキーを残さない。
@@ -1774,12 +1776,12 @@ class MainWindow(QWidget):
                 continue
             if individual:
                 self._flash_hint(
-                    t("{name}の拡大モデルを選んでください。", name=job.name)
+                    t("{name}の処理モデルを選んでください。", name=job.name)
                 )
             elif is_video:
-                self._flash_hint(t("動画の拡大モデルかフレーム補間モデルを選んでください。"))
+                self._flash_hint(t("動画の処理モデルかフレーム補間モデルを選んでください。"))
             else:
-                self._flash_hint(t("画像の拡大モデルを選んでください。"))
+                self._flash_hint(t("画像の処理モデルを選んでください。"))
             return
 
         # NPU 未変換の確認（ファイルごとの設定で判定。
@@ -1790,7 +1792,7 @@ class MainWindow(QWidget):
                 continue
             if job_settings.model is None:
                 continue
-            if custom_models.is_custom_key(job_settings.model):
+            if job_settings.denoise_enabled or custom_models.is_custom_key(job_settings.model):
                 # 追加モデルは GPU で実行するため変換は要らない。
                 continue
             if (

@@ -180,6 +180,20 @@ def _fit_progress_message(dim: tuple[int, int] | None) -> str | None:
     )
 
 
+def _encoding_layout(
+    settings: UpscaleSettings, width: int, height: int,
+) -> tuple[str, tuple[int, int] | None, str]:
+    """Native-resolution denoising must neither resize nor pad the source."""
+    if settings.denoise_enabled:
+        # Odd sizes require 4:4:4 and the software encoder. 4:2:0 requires
+        # even dimensions; the normal upscale path pads these by one pixel.
+        pixel_format = "yuv444p" if width % 2 or height % 2 else "yuv420p"
+        return _VIDEO_COLOR_FILTER.split(",pad=", 1)[0], None, pixel_format
+    video_filter, fitted = _video_filter_for_dimensions(
+        width, height, resolve_max_video_dim(settings))
+    return video_filter, fitted, "yuv420p"
+
+
 @lru_cache(maxsize=None)
 def _available_encoders() -> frozenset[str]:
     """`ffmpeg -encoders` を解析し、利用可能なエンコーダ名集合を返す。"""
@@ -470,17 +484,17 @@ def reassemble(frames_dir: str, audio_source: str, out_path: str, fps: float,
             frame_width, frame_height = frame_info.width, frame_info.height
         except Exception:
             frame_width = frame_height = 0
-    max_video_dim = resolve_max_video_dim(settings)
     video_filter = _VIDEO_COLOR_FILTER
     fit_dim: tuple[int, int] | None = None
+    pixel_format = "yuv420p"
     if frame_width > 0 and frame_height > 0:
-        video_filter, fit_dim = _video_filter_for_dimensions(
-            frame_width, frame_height, max_video_dim
+        video_filter, fit_dim, pixel_format = _encoding_layout(
+            settings, frame_width, frame_height
         )
 
     # エンコーダ選択
     encoder = "libx264"
-    if settings.hw_encode:
+    if settings.hw_encode and pixel_format == "yuv420p":
         hw = detect_hw_encoder("h264")
         if hw:
             encoder = hw
@@ -508,7 +522,7 @@ def reassemble(frames_dir: str, audio_source: str, out_path: str, fps: float,
     cmd += ["-vf", video_filter]
     cmd += _encoder_args(encoder, settings.video_quality)
     cmd += [
-        "-pix_fmt", "yuv420p", "-r", fps_str,
+        "-pix_fmt", pixel_format, "-r", fps_str,
         "-color_primaries", "bt709", "-color_trc", "bt709", "-colorspace", "bt709",
     ]
 
@@ -1220,9 +1234,8 @@ def upscale_video_piped(
     session = helper_backend.open_session(settings, width, height, progress, cancel)
     out_width = width * session.scale
     out_height = height * session.scale
-    max_video_dim = resolve_max_video_dim(settings)
-    video_filter, fit_dim = _video_filter_for_dimensions(
-        out_width, out_height, max_video_dim
+    video_filter, fit_dim, pixel_format = _encoding_layout(
+        settings, out_width, out_height
     )
     out = Path(out_path)
     out.parent.mkdir(parents=True, exist_ok=True)
@@ -1237,7 +1250,7 @@ def upscale_video_piped(
     ]
 
     encoder = "libx264"
-    if settings.hw_encode:
+    if settings.hw_encode and pixel_format == "yuv420p":
         encoder = detect_hw_encoder("h264") or "libx264"
     fps_str = repr(float(fps))
     encoder_cmd = [
@@ -1251,7 +1264,7 @@ def upscale_video_piped(
     encoder_cmd += ["-vf", video_filter]
     encoder_cmd += _encoder_args(encoder, settings.video_quality)
     encoder_cmd += [
-        "-pix_fmt", "yuv420p", "-r", fps_str,
+        "-pix_fmt", pixel_format, "-r", fps_str,
         "-color_primaries", "bt709", "-color_trc", "bt709", "-colorspace", "bt709",
     ]
     if want_audio:
@@ -1369,7 +1382,13 @@ def upscale_video_piped(
                     encoder_proc.stdin.write(np.ascontiguousarray(item).tobytes())
                     processed += 1
                     fraction = min(0.999, processed / total_frames) if total_frames else 0.0
-                    if total_frames:
+                    if settings.denoise_enabled and total_frames:
+                        message = t("動画のノイズ除去中… {processed}/{total}フレーム",
+                                    processed=processed, total=total_frames)
+                    elif settings.denoise_enabled:
+                        message = t("動画のノイズ除去中… {processed}フレーム",
+                                    processed=processed)
+                    elif total_frames:
                         message = t(
                             "動画をアップスケール中… {processed}/{total}フレーム",
                             processed=processed,
