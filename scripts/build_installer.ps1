@@ -43,6 +43,8 @@ $required = @(
     "vendor\realesrgan\realesrgan-ncnn-vulkan.exe", "vendor\rife\rife-ncnn-vulkan.exe",
     "vendor\ffmpeg\bin\ffmpeg.exe", "vendor\ffmpeg\bin\ffprobe.exe",
     "vendor\ffmpeg\LICENSE", "vendor\winml-sr\winml-sr.exe",
+    "models\ai\remaster_nchw_512x512_fp32.onnx", "models\ai\LICENSE-MIT-Remaster.txt",
+    "models\ai\NOTICE-Remaster.txt",
     "models\custom\README.txt", "LICENSE.txt",
     "THIRD-PARTY-NOTICES.txt", "THIRD-PARTY-NOTICES.en.txt",
     "licenses\PySide6\LGPL-3.0.txt", "licenses\PySide6\GPL-3.0.txt",

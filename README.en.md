@@ -3,7 +3,7 @@
 [日本語](README.md) [![agent-friendly](docs/images/agent-friendly.svg)](AGENTS.md)
 
 **[⬇ Download TOGU SCALER v0.14.0](https://github.com/tomhda/togu-scaler/releases/download/v0.14.0/togu-scaler-setup-win64.exe)**
-(setup for Windows x64, 296 MB). See [Install](#install) for the steps.
+(setup for Windows x64, 298 MB). See [Install](#install) for the steps.
 Up to v0.11.0, the app was named ultraeasy-upscaler.
 
 TOGU SCALER is a Windows app that upscales images and videos, and interpolates video frames, with a few clicks.

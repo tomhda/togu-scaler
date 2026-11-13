@@ -3,7 +3,7 @@
 [English](README.en.md) [![agent-friendly](docs/images/agent-friendly.svg)](AGENTS.md)
 
 **[⬇ TOGU SCALER v0.14.0 をダウンロード](https://github.com/tomhda/togu-scaler/releases/download/v0.14.0/togu-scaler-setup-win64.exe)**
-（Windows x64 用のセットアップ、296 MB）。手順は「[導入](#導入)」を参照。
+（Windows x64 用のセットアップ、298 MB）。手順は「[導入](#導入)」を参照。
 v0.11.0 までの名前は ultraeasy-upscaler です。
 
 TOGU SCALER は、画像や動画を かんたん操作でアップスケール/フレーム補間ができる Windows 用のアプリです。
