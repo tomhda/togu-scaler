@@ -33,6 +33,19 @@ def test_npu_short_edge_falls_back_to_gpu() -> None:
     )
 
 
+def test_realplksr_resolves_fixed_gpu_tile(monkeypatch, tmp_path) -> None:
+    model_file = tmp_path / "realplksr_nchw_256x256_fp32.onnx"
+    model_file.touch()
+    monkeypatch.setenv(helper_backend.MODELS_DIR_ENV, str(tmp_path))
+
+    settings = UpscaleSettings(backend=UpscaleBackend.WINML_GPU, model="realplksr")
+    assert helper_backend.realplksr_available()
+    assert helper_backend._session_spec(settings, 854, 480) == (
+        UpscaleBackend.WINML_GPU, 256, model_file.resolve(),
+    )
+    assert not settings.supports_vulkan_fallback
+
+
 def _stage_general_gpu_files(env_models: Path) -> tuple[Path, Path]:
     small = env_models / "generalv3_nchw_256x256_fp32.onnx"
     large = env_models / "generalv3_nchw_512x512_fp32.onnx"

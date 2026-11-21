@@ -36,6 +36,23 @@ GPU 用の `generalv3_nchw_256x256_fp32.onnx` / `generalv3_nchw_512x512_fp32.onn
 <Ryzen AI環境のpython> scripts/npu/split_tail.py --input <models>/generalv3dp_nchw_512x512_bf16cast.onnx --body <models>/generalv3dp_body_nchw_512x512_bf16cast.onnx --manifest <models>/generalv3dp_body_nchw_512x512.tail.json
 ```
 
+## RealPLKSR
+
+[4xNomosWebPhoto_RealPLKSR](https://huggingface.co/Phips/4xNomosWebPhoto_RealPLKSR) は Philip Hofmann（Phips）の実写向け4倍モデル。
+アプリは画像と動画を GPU（DirectML）で処理する。ソース版では通常の `setup.ps1` の後にモデルを用意する。
+
+```powershell
+.venv\Scripts\python.exe -m pip install torch spandrel onnx onnxsim onnxruntime
+.venv\Scripts\python.exe scripts/get_ai_models.py --download realplksr
+.venv\Scripts\python.exe scripts/npu/export_spandrel.py --weights tmp/npu-anime/span/4xNomosWebPhoto_RealPLKSR.safetensors --name realplksr --tile 256 --legacy-export
+if ($LASTEXITCODE -ne 0) { throw "RealPLKSR export failed" }
+Copy-Item -LiteralPath tmp/npu-anime/span/realplksr_nchw_256x256_fp32.onnx -Destination models/ai/
+```
+
+取得時に SHA-256 を検証する。TorchScript エクスポーターで Mish を DirectML が処理できる演算に展開し、PyTorch と ONNX Runtime の出力を照合する。
+変換後は GUI で **RealPLKSR** を選べる。CLI では `--backend gpu --model RealPLKSR` を指定する。
+インストーラーのビルドでは変換済み ONNX と CC BY 4.0 の帰属文書を同梱する。
+
 ## SwinIR-M
 
 `scripts/get_ai_models.py --download swinir` で重みを取得し、`scripts/npu/export_spandrel.py --tile 256` で ONNX を生成する。

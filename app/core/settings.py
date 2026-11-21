@@ -47,6 +47,7 @@ DEFAULT_MODEL_FAMILY = ModelFamily.ANIME
 HELPER_MODEL_ANIME = "animevideov3"
 HELPER_MODEL_SPAN = "4xNomosUni"
 HELPER_MODEL_GENERAL = "general-x4v3"
+HELPER_MODEL_REALPLKSR = "RealPLKSR"
 HELPER_MODEL_SWINIR = "SwinIR"
 HELPER_MODEL_ADCSR = "AdcSR"
 HELPER_MODEL_REMASTER = "Remaster"
@@ -88,6 +89,8 @@ HELPER_MODEL_ALIASES = {
     "4xNomosUni_span_multijpg": HELPER_MODEL_SPAN,
     "purephoto": HELPER_MODEL_SPAN,
     ModelFamily.PHOTO.value: HELPER_MODEL_SPAN,
+    "realplksr": HELPER_MODEL_REALPLKSR,
+    "4xNomosWebPhoto_RealPLKSR": HELPER_MODEL_REALPLKSR,
     HELPER_MODEL_SWINIR: HELPER_MODEL_SWINIR,
     "swinir": HELPER_MODEL_SWINIR,
     "swinir-m": HELPER_MODEL_SWINIR,
@@ -118,7 +121,7 @@ def canonical_helper_model(model: str | ModelFamily | None) -> str | None:
 def helper_model_family(model: str | ModelFamily | None) -> ModelFamily:
     """具体的なhelperモデルに対応する旧系統値を返す。"""
     key = canonical_helper_model(model)
-    if key in (HELPER_MODEL_SPAN, HELPER_MODEL_SWINIR, HELPER_MODEL_ADCSR):
+    if key in (HELPER_MODEL_SPAN, HELPER_MODEL_REALPLKSR, HELPER_MODEL_SWINIR, HELPER_MODEL_ADCSR):
         return ModelFamily.PHOTO
     if key == HELPER_MODEL_GENERAL:
         return ModelFamily.REALESRGAN
@@ -146,6 +149,9 @@ HELPER_MODEL_FILES = {
         HELPER_MODEL_GENERAL: {
             256: "generalv3_nchw_256x256_fp32.onnx",
             512: "generalv3_nchw_512x512_fp32.onnx",
+        },
+        HELPER_MODEL_REALPLKSR: {
+            256: "realplksr_nchw_256x256_fp32.onnx",
         },
         HELPER_MODEL_SWINIR: {
             256: "swinir_nchw_256x256_fp32.onnx",
@@ -296,6 +302,13 @@ class UpscaleSettings:
     def denoise_enabled(self) -> bool:
         """Remaster is a standalone native-resolution restoration model."""
         return canonical_helper_model(self.model) == HELPER_MODEL_REMASTER
+
+    @property
+    def supports_vulkan_fallback(self) -> bool:
+        return (
+            self.backend != UpscaleBackend.SWINIR_CUDA
+            and canonical_helper_model(self.model) not in {HELPER_MODEL_REMASTER, HELPER_MODEL_REALPLKSR}
+        )
 
     def output_suffix(self) -> str:
         """選択した処理を表す出力接尾辞を返す。"""

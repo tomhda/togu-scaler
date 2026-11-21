@@ -13,6 +13,7 @@ from .settings import (
     HELPER_MODEL_REMASTER,
     HELPER_MODEL_ANIME,
     HELPER_MODEL_GENERAL,
+    HELPER_MODEL_REALPLKSR,
     HELPER_MODEL_SPAN,
     HELPER_MODEL_SWINIR,
     UpscaleBackend,
@@ -27,6 +28,7 @@ MODEL_LABELS = {
     "realesr-general-wdn-x4v3": N_("Real-ESRGAN General v3（ノイズ除去弱）"),
     HELPER_MODEL_SPAN: N_("4xNomosUni SPAN"),
     HELPER_MODEL_GENERAL: N_("Real-ESRGAN General v3"),
+    HELPER_MODEL_REALPLKSR: "RealPLKSR",
     HELPER_MODEL_SWINIR: N_("SwinIR-M"),
     HELPER_MODEL_ADCSR: N_("AdcSR"),
     HELPER_MODEL_REMASTER: N_("Remaster（等倍ノイズ除去）"),
@@ -36,6 +38,7 @@ HELPER_MODEL_OPTIONS = [
     (MODEL_LABELS[HELPER_MODEL_ANIME], HELPER_MODEL_ANIME),
     (MODEL_LABELS[HELPER_MODEL_SPAN], HELPER_MODEL_SPAN),
     (MODEL_LABELS[HELPER_MODEL_GENERAL], HELPER_MODEL_GENERAL),
+    (MODEL_LABELS[HELPER_MODEL_REALPLKSR], HELPER_MODEL_REALPLKSR),
     (MODEL_LABELS[HELPER_MODEL_SWINIR], HELPER_MODEL_SWINIR),
     (MODEL_LABELS[HELPER_MODEL_ADCSR], HELPER_MODEL_ADCSR),
     (MODEL_LABELS[HELPER_MODEL_REMASTER], HELPER_MODEL_REMASTER),
@@ -43,6 +46,15 @@ HELPER_MODEL_OPTIONS = [
 HELPER_MODEL_VALUES = {
     value for _label, value in HELPER_MODEL_OPTIONS if value is not None
 }
+
+
+def helper_model_options(backend: UpscaleBackend) -> list[tuple[str, str | None]]:
+    return [
+        (label, value) for label, value in HELPER_MODEL_OPTIONS
+        if backend == UpscaleBackend.WINML_GPU or value != HELPER_MODEL_REALPLKSR
+    ]
+
+
 SWINIR_CUDA_MODEL_OPTIONS = [
     (N_("なし（拡大しない）"), None),
     (N_("SwinIR-M（real-world x4）"), HELPER_MODEL_SWINIR),
@@ -54,6 +66,7 @@ MODEL_HINT = {
     "realesr-animevideov3": N_("アニメ向け・速い"),
     HELPER_MODEL_SPAN: N_("実写向け・速い"),
     HELPER_MODEL_GENERAL: N_("実写向け・くっきり・速い"),
+    HELPER_MODEL_REALPLKSR: N_("実写向け・毛や布の質感を復元"),
     HELPER_MODEL_SWINIR: N_("実写の静止画向け・高精細・遅い"),
     HELPER_MODEL_ADCSR: N_("実写の静止画向け・最高画質・とても遅い"),
     HELPER_MODEL_REMASTER: N_("解像度を変えずに圧縮ノイズを軽減・GPUで実行"),

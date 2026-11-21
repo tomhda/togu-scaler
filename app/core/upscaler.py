@@ -151,7 +151,7 @@ def upscale_image(in_path: str, out_path: str, settings: UpscaleSettings,
             helper_backend.upscale_image(in_path, out_path, settings, progress, cancel)
             return
         except helper_backend.HelperBackendUnavailable as exc:
-            if settings.denoise_enabled or settings.backend == UpscaleBackend.SWINIR_CUDA:
+            if not settings.supports_vulkan_fallback:
                 raise
             # DirectML/NPUのモデル不在・helper起動失敗時は、既存のVulkan資産へ退避する。
             settings = vulkan_fallback_settings(settings)
@@ -268,7 +268,7 @@ def upscale_folder(in_dir: str, out_dir: str, settings: UpscaleSettings,
             helper_backend.upscale_folder(in_dir, out_dir, settings, progress, cancel)
             return
         except helper_backend.HelperBackendUnavailable as exc:
-            if settings.denoise_enabled or settings.backend == UpscaleBackend.SWINIR_CUDA:
+            if not settings.supports_vulkan_fallback:
                 raise
             settings = vulkan_fallback_settings(settings)
             progress(

@@ -422,24 +422,12 @@ def _resolve_backend(name: str) -> str:
 
 def _upscale_keys(backend: str) -> list[str]:
     """Model keys in display order (same source as the GUI lists)."""
-    from app.core import binaries, custom_models
-    from app.core.settings import (
-        HELPER_MODEL_ADCSR,
-        HELPER_MODEL_REMASTER,
-        HELPER_MODEL_ANIME,
-        HELPER_MODEL_GENERAL,
-        HELPER_MODEL_SPAN,
-        HELPER_MODEL_SWINIR,
-    )
+    from app.core import binaries, catalog, custom_models
 
     if backend in ("gpu", "npu"):
         keys = [
-            HELPER_MODEL_ANIME,
-            HELPER_MODEL_SPAN,
-            HELPER_MODEL_GENERAL,
-            HELPER_MODEL_SWINIR,
-            HELPER_MODEL_ADCSR,
-            HELPER_MODEL_REMASTER,
+            value for _label, value in catalog.helper_model_options(_cli_to_upscale_backend(backend))
+            if value is not None
         ]
         # 追加モデルは内蔵の後ろに並べる（Vulkan には出さない）。
         try:
@@ -511,11 +499,14 @@ def _check_model_installed(backend: str, model: str | None) -> None:
         return
     if _model_available(backend, model):
         return
-    from app.core.settings import HELPER_MODEL_REMASTER
+    from app.core.settings import HELPER_MODEL_REALPLKSR, HELPER_MODEL_REMASTER
     if model == HELPER_MODEL_REMASTER:
         raise UsageError(CODE_KIT_MISSING, "Remaster model is not installed.",
                          "From source: install requirements-remaster.txt and run "
                          "scripts/get_remaster.py. See docs/remaster.md.")
+    if model == HELPER_MODEL_REALPLKSR:
+        raise UsageError(CODE_KIT_MISSING, "RealPLKSR model is not installed.",
+                         "See the RealPLKSR setup instructions in docs/model-conversion.md.")
     if isinstance(model, str) and model.startswith("custom:"):
         # 一覧に出たあとで消された追加モデルは「知らないモデル」扱い。
         raise UsageError(

@@ -105,6 +105,7 @@ try {
         @{ Name = "generalv3_nchw_256x256_fp32.onnx"; Source = (Resolve-Model "general-x4v3/256" (Join-Path $modelRoots.Top "generalv3_nchw_256x256_fp32.onnx")) }
         @{ Name = "generalv3_nchw_512x512_fp32.onnx"; Source = (Resolve-Model "general-x4v3/512" (Join-Path $modelRoots.Top "generalv3_nchw_512x512_fp32.onnx")) }
         @{ Name = "swinir_nchw_256x256_fp32.onnx"; Source = (Resolve-Model "SwinIR/256" (Join-Path $modelRoots.Span "swinir_nchw_256x256_fp32.onnx")) }
+        @{ Name = "realplksr_nchw_256x256_fp32.onnx"; Source = (Resolve-Model "RealPLKSR/256" (Join-Path $repo "models\ai\realplksr_nchw_256x256_fp32.onnx")) }
     )
     $adcsrGpu = @(
         @{ Name = "adcsr_nchw_128x128_fp32.onnx"; Source = (Resolve-Model "AdcSR/128" (Join-Path $modelRoots.Adc "adcsr_nchw_128x128_fp32.onnx")) }
@@ -143,6 +144,7 @@ NOTICE-models-gpu-fp32.txt — GPU（DirectML）用 fp32 ONNX モデル
 | generalv3_nchw_256x256_fp32.onnx | general-x4v3（Real-ESRGAN General v3） | realesr-general-x4v3 | BSD 3-Clause（LICENSE-BSD-3-Real-ESRGAN.txt） |
 | generalv3_nchw_512x512_fp32.onnx | general-x4v3（Real-ESRGAN General v3） | realesr-general-x4v3 | BSD 3-Clause（LICENSE-BSD-3-Real-ESRGAN.txt） |
 | swinir_nchw_256x256_fp32.onnx | SwinIR（SwinIR-M） | 003_realSR_BSRGAN_DFO_s64w8_SwinIR-M_x4_GAN（Jingyun Liang） | Apache-2.0（LICENSE-Apache-2.0-SwinIR.txt） |
+| realplksr_nchw_256x256_fp32.onnx | RealPLKSR | 4xNomosWebPhoto_RealPLKSR（Philip Hofmann/Phips、固定形状ONNXへ変換） | CC-BY-4.0（LICENSE-CC-BY-4.0.txt・NOTICE-RealPLKSR.txt） |
 
 取得元と SHA-256 はリポジトリの docs/span-bench-results.md を参照。
 '@
@@ -292,7 +294,7 @@ seam_templates/ の AdcSR 格子補正テンプレート）。
 
     # --- (b)(c)(d)(e) モデル zip（AdcSR の 1.8GB 級は無圧縮で格納する） ---
     $built += New-Package "models-gpu-fp32.zip" $gpuModels `
-        "NOTICE-models-gpu-fp32.txt" $noticeGpuModels $modelLicenses "Optimal"
+        "NOTICE-models-gpu-fp32.txt" $noticeGpuModels ($modelLicenses + "NOTICE-RealPLKSR.txt") "Optimal"
     $built += New-Package "models-adcsr-gpu-fp32.zip" $adcsrGpu `
         "NOTICE-models-adcsr-gpu-fp32.txt" $noticeAdcsrGpu $adcsrLicenses "NoCompression"
     $built += New-Package "models-npu-bf16.zip" $npuModels `

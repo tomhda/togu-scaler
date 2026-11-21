@@ -200,7 +200,7 @@ def _process_video(job, settings, progress, cancel) -> Path:
                 )
             except helper_backend.HelperBackendUnavailable as exc:
                 out_tmp.unlink(missing_ok=True)
-                if settings.denoise_enabled:
+                if not settings.supports_vulkan_fallback:
                     raise
                 active_settings = vulkan_fallback_settings(settings)
                 progress(

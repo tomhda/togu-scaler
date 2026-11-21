@@ -137,6 +137,10 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--name", required=True, help="出力ONNXのプレフィックス")
     parser.add_argument("--tile", type=int, choices=(256, 512), default=256)
     parser.add_argument("--size", type=parse_size, help="固定入力サイズ WxH（指定時は--tileより優先）")
+    parser.add_argument(
+        "--legacy-export", action="store_true",
+        help="TorchScript ONNX エクスポーターを使う（DirectML 用 RealPLKSR）",
+    )
     return parser
 
 
@@ -210,6 +214,7 @@ def main() -> int:
     del warm
     print(f"入力仕様確認OK: 出力形状={expected_shape}")
 
+    export_options = {"dynamo": False} if args.legacy_export else {}
     try:
         torch.onnx.export(
             model,
@@ -220,6 +225,7 @@ def main() -> int:
             opset_version=17,
             do_constant_folding=True,
             dynamic_axes=None,
+            **export_options,
         )
     except Exception as exc:  # noqa: BLE001 - モデル単位で失敗扱いにする
         print(f"ONNX export失敗: {type(exc).__name__}: {exc}")

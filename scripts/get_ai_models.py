@@ -73,6 +73,17 @@ MODELS = {
         license="Apache-2.0",
         attribution="Jingyun Liang (SwinIR)",
     ),
+    "realplksr": ModelSpec(
+        name="realplksr",
+        filename="4xNomosWebPhoto_RealPLKSR.safetensors",
+        url=(
+            "https://huggingface.co/Phips/4xNomosWebPhoto_RealPLKSR/resolve/main/"
+            "4xNomosWebPhoto_RealPLKSR.safetensors"
+        ),
+        sha256="9BE0228F98156A100D6636D99B373ED2785B999723F9ADC4CCA504329AB157F2",
+        license="CC-BY-4.0",
+        attribution="Philip Hofmann/Phips",
+    ),
 }
 
 
@@ -125,10 +136,14 @@ def _pipeline(spec: ModelSpec, tile: int) -> None:
     bf16 = SPAN_DIR / f"{spec.name}_nchw_{tile}x{tile}_bf16cast.onnx"
     python = ".venv\\Scripts\\python.exe"
     print("\n--- 変換手順（重み・生成物はtmp配下でgit管理外） ---")
+    export_flag = " --legacy-export" if spec.name == "realplksr" else ""
     print(
         f"{python} scripts/npu/export_spandrel.py "
-        f"--weights {weights.relative_to(ROOT)} --name {spec.name} --tile {tile}"
+        f"--weights {weights.relative_to(ROOT)} --name {spec.name} --tile {tile}{export_flag}"
     )
+    if spec.name == "realplksr":
+        print(f"GPU用fp32: {fp32}")
+        return
     print(
         "python -m quark.onnx.tools.convert_fp32_to_bf16 "
         f"--input {fp32.relative_to(ROOT)} --output {bf16.relative_to(ROOT)} "
@@ -149,7 +164,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--pipeline", choices=sorted(MODELS),
         help="指定モデルのspandrel/bf16変換コマンドを表示",
     )
-    parser.add_argument("--tile", type=int, choices=(256, 512), default=512)
+    parser.add_argument("--tile", type=int, choices=(256, 512))
     return parser
 
 
@@ -174,7 +189,8 @@ def main() -> int:
             _download(MODELS[name])
 
     if args.pipeline:
-        _pipeline(MODELS[args.pipeline], args.tile)
+        default_tile = 256 if args.pipeline == "realplksr" else 512
+        _pipeline(MODELS[args.pipeline], args.tile or default_tile)
     return 0
 
 

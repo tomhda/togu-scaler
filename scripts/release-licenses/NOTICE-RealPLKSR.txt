@@ -1,0 +1,7 @@
+4xNomosWebPhoto_RealPLKSR by Philip Hofmann (Phips)
+Source: https://huggingface.co/Phips/4xNomosWebPhoto_RealPLKSR
+License: Creative Commons Attribution 4.0 International
+https://creativecommons.org/licenses/by/4.0/
+
+TOGU SCALER converted the original weights to a fixed 256×256 FP32 ONNX
+model for DirectML (realplksr_nchw_256x256_fp32.onnx).

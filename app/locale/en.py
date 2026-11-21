@@ -219,6 +219,8 @@ EN: dict[str, str | None] = {
     '実写向け・速い': 'For live action · Fast',
     # 説明行（Real-ESRGAN General v3）
     '実写向け・くっきり・速い': 'For live action · Crisp · Fast',
+    '実写向け・毛や布の質感を復元': 'For live action · Restores fur and fabric detail',
+    'RealPLKSR は GPU（DirectML）で実行してください。': 'Select GPU (DirectML) to run RealPLKSR.',
     # 説明行（SwinIR-M）
     '実写の静止画向け・高精細・遅い': 'For live-action stills · Fine detail · Slow',
     # 説明行（AdcSR）

@@ -31,6 +31,7 @@ from .settings import (
     DEFAULT_VENDOR_MODELS_DIR,
     HELPER_MODEL_FILES,
     HELPER_MODEL_ADCSR,
+    HELPER_MODEL_REALPLKSR,
     HELPER_MODEL_REMASTER,
     HELPER_MODEL_SWINIR,
     HELPER_DEFAULT_OVERLAP,
@@ -449,6 +450,11 @@ def _search_model_file(filename: str) -> Path | None:
     return None
 
 
+def realplksr_available() -> bool:
+    filename = HELPER_MODEL_FILES[UpscaleBackend.WINML_GPU][HELPER_MODEL_REALPLKSR][256]
+    return _search_model_file(filename) is not None
+
+
 def adcsr_two_stage_files() -> tuple[Path, Path, Path] | None:
     """2 段モードの (front, back, manifest)。揃わなければ None。"""
     try:
@@ -554,8 +560,11 @@ def _session_spec(
             t("新しいGPU/NPUバックエンドは4xモデル専用です。倍率を4xにしてください。")
         )
     requested = settings.backend
+    if model_key == HELPER_MODEL_REALPLKSR:
+        if requested != UpscaleBackend.WINML_GPU:
+            raise RuntimeError(t("RealPLKSR は GPU（DirectML）で実行してください。"))
+        return requested, 256, _resolve_model(requested, model_key, 256)
     backend = effective_backend(requested, width, height)
-    model_key = _model_key(settings)
     if custom_models.is_custom_key(model_key):
         # 追加モデルは GPU（DirectML）だけで実行する。タイルの大きさは
         # モデルから決まる（serve の READY が scale と tile を返す）ため、

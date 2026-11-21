@@ -17,7 +17,7 @@ Real-ESRGAN など、最大5つの超解像モデルと、RIFE v4.6・FILM (Styl
 ## できること
 
 - 超解像モデルを用いて画像、動画を キレイに拡大。動画はH.264 で保存。
-- 超解像モデル：Anime Video v3、 4xNomosUni SPAN、Real-ESRGAN General v3、SwinIR-M、AdcSR※
+- 超解像モデル：Anime Video v3、4xNomosUni SPAN、Real-ESRGAN General v3、RealPLKSR、SwinIR-M、AdcSR※
 - 自分で用意した 4 倍の超解像モデル（ONNX）を一覧に加えて使うことも可能（[追加モデル](#追加モデル)）。
 - **Remaster（等倍ノイズ除去）** で、画像・動画の解像度を変えずに圧縮ノイズを軽減。
   既存のクイック確認で比較できます（[モデルの導入と使い方](docs/remaster.md)）。
@@ -117,6 +117,7 @@ v0.13.0 までの zip 版から移るときは、セットアップのインス�
 | Anime Video v3 | アニメ・線画・CG | 0.46 秒 | 細部を整理してなめらかにする。劣化した古い素材に強い。実写には加工感が強く出る |
 | 4xNomosUni SPAN | 実写 | 0.51 秒 | 元の質感や粒状感を残す実写向きの素材。補正は強くないが元の雰囲気が残り、きれいな素材に向く |
 | Real-ESRGAN General v3 | 実写 | 0.61 秒 | 輪郭をやや立てて、くっきり見せる。肌の質感は残る。速いので動画にも向く |
+| RealPLKSR | 実写 | — | 毛や布の質感を復元。画像と動画に対応。GPU（DirectML）で実行。[ソース版の導入手順](docs/model-conversion.md#realplksr) |
 | SwinIR-M | 実写の静止画 | 59 秒 | Transformerモデル。時間をかけて細部まで復元。 |
 | AdcSR | 実写の静止画 | 108 秒 | AI生成型で、質感を作り足すモデル。とても重く書き足しも強いため静止画専用。本体には含まれず[追加キット](#追加キット)が必要 |
 
@@ -258,6 +259,7 @@ togu-scaler-cli quick-check clip.mp4 --time 5 --model animevideov3 --out check.p
 | Anime Video v3（realesr-animevideov3） | xinntao（[Real-ESRGAN](https://github.com/xinntao/Real-ESRGAN)） | BSD 3-Clause |
 | 4xNomosUni SPAN（4xNomosUni_span_multijpg） | Philip Hofmann（Phips） | CC BY 4.0（作者の表示が必要） |
 | Real-ESRGAN General v3（realesr-general-x4v3） | xinntao（[Real-ESRGAN](https://github.com/xinntao/Real-ESRGAN)） | BSD 3-Clause |
+| RealPLKSR（4xNomosWebPhoto_RealPLKSR） | Philip Hofmann（[Phips](https://huggingface.co/Phips/4xNomosWebPhoto_RealPLKSR)） | CC BY 4.0 |
 | SwinIR-M（003_realSR_BSRGAN_DFO_s64w8_SwinIR-M_x4_GAN） | Jingyun Liang | Apache 2.0 |
 | AdcSR | Guaishou74851（CVPR 2025） | Apache 2.0。基になった Stable Diffusion 2.1-base の使用条件（CreativeML Open RAIL++-M）も適用されるため、使う前に利用者自身で確認すること |
 | RIFE v4.6 | hzwer（[Practical-RIFE](https://github.com/hzwer/Practical-RIFE)） | MIT |

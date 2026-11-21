@@ -115,7 +115,7 @@ def test_models_json_shape(monkeypatch, capsys):
     assert code == 0
     payload = _json_out(out)
     assert payload["backend"] == "gpu"
-    assert len(payload["upscale"]) == 6
+    assert len(payload["upscale"]) == 7
     for entry in payload["upscale"]:
         assert isinstance(entry["key"], str)
         assert isinstance(entry["name"], str) and entry["name"]
@@ -128,6 +128,7 @@ def test_models_json_shape(monkeypatch, capsys):
     by_key = {e["key"]: e for e in payload["upscale"]}
     assert by_key["animevideov3"]["video"] is True
     assert by_key["AdcSR"]["video"] is False
+    assert by_key["RealPLKSR"]["video"] is True
     assert [e["key"] for e in payload["interpolation"]] == [
         "rife-v4.6", "film-style"]
     for entry in payload["interpolation"]:
@@ -143,6 +144,7 @@ def test_models_npu_has_converted(monkeypatch, capsys):
     assert code == 0
     payload = _json_out(out)
     assert payload["backend"] == "npu"
+    assert all(entry["key"] != "RealPLKSR" for entry in payload["upscale"])
     for entry in payload["upscale"]:
         if entry["key"] == "Remaster":
             assert "converted" not in entry  # Always runs on DirectML.

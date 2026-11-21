@@ -99,6 +99,9 @@ if ($WithHelper) {
     if (-not (Test-Path -LiteralPath (Join-Path $modelsSource "remaster_nchw_512x512_fp32.onnx"))) {
         throw "Remaster model is missing (run scripts/get_remaster.py first)"
     }
+    if (-not (Test-Path -LiteralPath (Join-Path $modelsSource "realplksr_nchw_256x256_fp32.onnx"))) {
+        throw "RealPLKSR model is missing (see docs/model-conversion.md)"
+    }
     $modelsOut = Join-Path $app "models\ai"
     New-Item -ItemType Directory -Path $modelsOut -Force | Out-Null
     $onnxFiles = Get-ChildItem -LiteralPath $modelsSource -Filter "*.onnx" -File `
@@ -123,6 +126,8 @@ if ($WithHelper) {
         if (-not (Test-Path -LiteralPath $doc)) { throw "モデルのライセンス文書がありません: $doc" }
         Copy-Item -LiteralPath $doc -Destination $modelsOut -Force
     }
+    Copy-Item -LiteralPath (Join-Path $repo "scripts\release-licenses\NOTICE-RealPLKSR.txt") `
+        -Destination $modelsOut -Force
 }
 
 # 追加モデル用の空フォルダ（利用者が ONNX を置く場所。説明は原本から写す）

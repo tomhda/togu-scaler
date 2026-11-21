@@ -19,7 +19,7 @@ Remaster adds native-resolution denoising for images and SDR videos, with the ex
 ## What it does
 
 - Enlarges images and videos 4× with super-resolution models. Videos are saved as H.264.
-- Super-resolution models: Anime Video v3, 4xNomosUni SPAN, Real-ESRGAN General v3, SwinIR-M, AdcSR\*
+- Super-resolution models: Anime Video v3, 4xNomosUni SPAN, Real-ESRGAN General v3, RealPLKSR, SwinIR-M, AdcSR\*
 - You can also add your own 4× super-resolution models (ONNX) to the lists ([Your own models](#your-own-models)).
 
 - Processing a video takes time, so before the full run you can pick one frame (or part of it), process just that, and compare it with the original. Results from different models can be compared with each other too.
@@ -117,6 +117,7 @@ Times are for enlarging one 854×480 image 4× on a Radeon 860M (the integrated 
 | Anime Video v3 | Anime, line art, CG | 0.46 s | Tidies details and smooths the picture. Good with old, degraded material. Looks heavily processed on live action |
 | 4xNomosUni SPAN | Live action | 0.51 s | Keeps the original texture and grain. Its correction is mild, the original look remains, and it suits clean material |
 | Real-ESRGAN General v3 | Live action | 0.61 s | Brings out edges a little and looks crisp. Skin texture remains. Fast, so it also suits video |
+| RealPLKSR | Live action | — | Restores fur and fabric detail in images and videos. Runs on GPU (DirectML). [Source checkout setup](docs/model-conversion.md#realplksr) |
 | SwinIR-M | Live-action stills | 59 s | A transformer model. Takes its time and restores fine detail |
 | AdcSR | Live-action stills | 108 s | A generative model that adds texture. It is very heavy and adds a lot, so it is for still images only. Not included in the app; it needs an [add-on kit](#add-on-kits) |
 
@@ -258,6 +259,7 @@ Running from source, the requirements of each engine, measurements, environment 
 | Anime Video v3 (realesr-animevideov3) | xinntao ([Real-ESRGAN](https://github.com/xinntao/Real-ESRGAN)) | BSD 3-Clause |
 | 4xNomosUni SPAN (4xNomosUni_span_multijpg) | Philip Hofmann (Phips) | CC BY 4.0 (attribution required) |
 | Real-ESRGAN General v3 (realesr-general-x4v3) | xinntao ([Real-ESRGAN](https://github.com/xinntao/Real-ESRGAN)) | BSD 3-Clause |
+| RealPLKSR (4xNomosWebPhoto_RealPLKSR) | Philip Hofmann ([Phips](https://huggingface.co/Phips/4xNomosWebPhoto_RealPLKSR)) | CC BY 4.0 |
 | SwinIR-M (003_realSR_BSRGAN_DFO_s64w8_SwinIR-M_x4_GAN) | Jingyun Liang | Apache 2.0 |
 | AdcSR | Guaishou74851 (CVPR 2025) | Apache 2.0. The terms of use of Stable Diffusion 2.1-base, which it is built on (CreativeML Open RAIL++-M), also apply, so check them yourself before use |
 | RIFE v4.6 | hzwer ([Practical-RIFE](https://github.com/hzwer/Practical-RIFE)) | MIT |

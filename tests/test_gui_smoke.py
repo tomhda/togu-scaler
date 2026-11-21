@@ -41,6 +41,26 @@ def test_run_importable():
     assert callable(run)
 
 
+def test_realplksr_is_selectable_for_gpu_images_and_video(app, monkeypatch):
+    from app.core import helper_backend
+    from app.core.settings import HELPER_MODEL_REALPLKSR, UpscaleBackend
+    from app.gui.main_window import MainWindow
+
+    monkeypatch.setattr(helper_backend, "realplksr_available", lambda: True)
+    win = MainWindow()
+    try:
+        for combo in (win.image_model_combo, win.video_model_combo):
+            assert combo.findData(HELPER_MODEL_REALPLKSR) >= 0
+        win.image_model_combo.setCurrentIndex(win.image_model_combo.findData(HELPER_MODEL_REALPLKSR))
+        assert win.build_settings().model == HELPER_MODEL_REALPLKSR
+        win.backend_combo.setCurrentIndex(win.backend_combo.findData(UpscaleBackend.NPU_NATIVE.value))
+        for combo in (win.image_model_combo, win.video_model_combo):
+            assert combo.findData(HELPER_MODEL_REALPLKSR) == -1
+    finally:
+        win.close()
+        app.processEvents()
+
+
 def test_window_creates_and_adds_job(app):
     from app.gui.main_window import MainWindow
 

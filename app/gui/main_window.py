@@ -45,6 +45,7 @@ from app.core.settings import (
     HELPER_MODEL_SPAN,
     HELPER_MODEL_SWINIR,
     HELPER_MODEL_ADCSR,
+    HELPER_MODEL_REALPLKSR,
     HELPER_MODEL_REMASTER,
     OutputLocation,
     UpscaleBackend,
@@ -86,7 +87,6 @@ _HELPER_BACKENDS = {
 # 追加モデルの区切り（モデルコンボの内蔵と追加の間に挟む。選べない）。
 _SEPARATOR_VALUE = "__separator__"
 _MODEL_LABELS = catalog.MODEL_LABELS
-_HELPER_MODEL_OPTIONS = catalog.HELPER_MODEL_OPTIONS
 _HELPER_MODEL_VALUES = catalog.HELPER_MODEL_VALUES
 _SWINIR_CUDA_MODEL_OPTIONS = catalog.SWINIR_CUDA_MODEL_OPTIONS
 _MODEL_HINT = catalog.MODEL_HINT
@@ -1142,7 +1142,9 @@ class MainWindow(QWidget):
         if backend in _HELPER_BACKENDS:
             if backend == UpscaleBackend.SWINIR_CUDA:
                 return list(_SWINIR_CUDA_MODEL_OPTIONS)
-            base = list(_HELPER_MODEL_OPTIONS)
+            base = catalog.helper_model_options(backend)
+            if backend == UpscaleBackend.WINML_GPU and not helper_backend.realplksr_available():
+                base = [(label, value) for label, value in base if value != HELPER_MODEL_REALPLKSR]
             base = self._without_adcsr(base) if is_video else base
             # 追加モデルは内蔵の後ろに区切り線を入れて並べる。
             # video: false は動画用の一覧に出さない。
@@ -1485,16 +1487,10 @@ class MainWindow(QWidget):
         if backend in _HELPER_BACKENDS:
             if backend == UpscaleBackend.SWINIR_CUDA:
                 return {value for _label, value in _SWINIR_CUDA_MODEL_OPTIONS}
-            allowed = {value for _label, value in _HELPER_MODEL_OPTIONS}
-            if tab == _VIDEO_TAB:
-                allowed.discard(HELPER_MODEL_ADCSR)
+            allowed = {value for _label, value in self._base_options(backend, tab == _VIDEO_TAB)}
+            allowed.discard(_SEPARATOR_VALUE)
             if not self._adcsr_available(backend):
                 allowed.discard(HELPER_MODEL_ADCSR)
-            # 追加モデルは画像側に全部、動画側は video: true だけ。
-            for key, model in self._custom_by_key.items():
-                if tab == _VIDEO_TAB and not model.video:
-                    continue
-                allowed.add(key)
             return allowed
         if models is None:
             try:
