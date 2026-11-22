@@ -51,7 +51,7 @@ if (-not (Test-Path -LiteralPath (Join-Path $realesrganSource "realesrgan-ncnn-v
     throw "Real-ESRGAN assets are missing"
 }
 # 上流の配布物に入っているサンプル（画像・アニメの動画）は再配布しない。
-$realesrganSamples = @("input.jpg", "input2.jpg", "onepiece_demo.mp4")
+$realesrganSamples = @("input.jpg", "input2.jpg", "onepiece_demo.mp4", "bbb_demo.mp4")
 Get-ChildItem -LiteralPath $realesrganSource | Where-Object { $realesrganSamples -notcontains $_.Name } |
     ForEach-Object { Copy-Item -LiteralPath $_.FullName -Destination $realesrganOut -Recurse -Force }
 
@@ -195,9 +195,14 @@ Command line
 togu-scaler-cli.exe does the same processing without opening the window. See AGENTS.md for how to use it.
 "@ | Set-Content -LiteralPath (Join-Path $app "Getting started.txt") -Encoding UTF8
 
-& (Join-Path $app "togu-scaler.exe") --portable-self-test
-if ($LASTEXITCODE -ne 0) {
-    throw "Portable self-test failed: $LASTEXITCODE"
+$guiTest = Start-Process -FilePath (Join-Path $app "togu-scaler.exe") `
+    -ArgumentList "--portable-self-test" -WindowStyle Hidden -PassThru
+if (-not $guiTest.WaitForExit(30000)) {
+    $guiTest.Kill()
+    throw "Portable GUI self-test timed out"
+}
+if ($guiTest.ExitCode -ne 0) {
+    throw "Portable GUI self-test failed: $($guiTest.ExitCode)"
 }
 
 # The CLI exe must also start from the same folder (same _internal).

@@ -48,7 +48,12 @@ def portable_self_test() -> int:
 
 def main() -> int:
     if "--portable-self-test" in sys.argv:
-        return portable_self_test()
+        try:
+            from PySide6.QtWidgets import QApplication
+        except ImportError:
+            return 7
+        application = QApplication(sys.argv[:1])
+        return portable_self_test() if application.platformName() else 7
     from app.i18n import init_language
 
     init_language()

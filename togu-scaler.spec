@@ -9,6 +9,7 @@ models/ and vendor/ next to itself just like the GUI exe.
 """
 
 import os
+import re
 
 REPO = SPECPATH  # type: ignore[name-defined]  # folder holding this spec
 ENTRY_GUI = os.path.join(REPO, "app", "main.py")
@@ -87,12 +88,29 @@ exe_cli = EXE(  # noqa: F821
     entitlements_file=None,
 )
 
+# Qt on Windows uses the system ICU API. Dependency scanning can instead find
+# another tool's icuuc.dll on PATH, whose versioned exports cannot satisfy Qt.
+binaries = a_gui.binaries + a_cli.binaries
+if os.name == "nt":
+    private_icu_dirs = {
+        os.path.normcase(os.path.dirname(source))
+        for name, source, _kind in binaries
+        if name.lower() == "icuuc.dll"
+    }
+    binaries = [
+        (name, source, kind)
+        for name, source, kind in binaries
+        if not (
+            re.fullmatch(r"icu(?:dt|in|uc)\d*\.dll", name, re.IGNORECASE)
+            and os.path.normcase(os.path.dirname(source)) in private_icu_dirs
+        )
+    ]
+
 coll = COLLECT(  # noqa: F821
     exe_gui,
     exe_cli,
-    a_gui.binaries,
+    binaries,
     a_gui.datas,
-    a_cli.binaries,
     a_cli.datas,
     strip=False,
     upx=True,
